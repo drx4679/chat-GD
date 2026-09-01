@@ -36,20 +36,28 @@ export function useMessages(conversationId: string): UseMessagesReturn {
 
     fetchMessages();
 
-    // S'abonner aux nouveaux messages
-    const channel = supabase.channel(`messages:${conversationId}`)
-      .on(
-        'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'messages', filter: `conversation_id=eq.${conversationId}` },
-        (payload) => {
-          setMessages(prev => [...prev, payload.new as Message]);
-        }
-      )
-      .subscribe();
+    // S'abonner aux nouveaux messages avec nom unique (évite conflit React Strict Mode)
+    const channelName = `msg_${conversationId}_${Date.now()}`;
+    
+    try {
+      const channel = supabase
+        .channel(channelName)
+        .on(
+          'postgres_changes',
+          { event: 'INSERT', schema: 'public', table: 'messages', filter: `conversation_id=eq.${conversationId}` },
+          (payload) => {
+            setMessages(prev => [...prev, payload.new as Message]);
+          }
+        )
+        .subscribe();
 
-    return () => {
-      supabase.removeChannel(channel);
-    };
+      return () => {
+        supabase.removeChannel(channel);
+      };
+    } catch (err) {
+      console.warn('Erreur subscription messages:', err);
+      return () => {};
+    }
   }, [conversationId]);
 
   const sendMessage = async (content: string) => {
