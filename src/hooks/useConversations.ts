@@ -97,11 +97,17 @@ export function useConversations(): UseConversationsReturn {
     fetchConversations();
 
     // S'abonner aux nouveaux messages pour rafraîchir la liste
-    const channel = supabase.channel('conversations_updates')
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, () => {
-        fetchConversations();
-      })
-      .subscribe();
+    // Utiliser un nom unique pour éviter les conflits de canaux
+    const channelName = `conv_updates_${user.id}`;
+    const channel = supabase.channel(channelName);
+    
+    channel.on(
+      'postgres_changes',
+      { event: 'INSERT', schema: 'public', table: 'messages' },
+      () => { fetchConversations(); }
+    );
+    
+    channel.subscribe();
 
     return () => {
       supabase.removeChannel(channel);
