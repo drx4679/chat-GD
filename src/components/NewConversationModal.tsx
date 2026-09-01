@@ -5,6 +5,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase-browser';
 import { useConversations } from '@/hooks/useConversations';
+import { useAuth } from '@/hooks/useAuth';
 import UserAvatar from './UserAvatar';
 import { Profile } from '@/types/database';
 
@@ -17,43 +18,61 @@ export default function NewConversationModal({ isOpen, onClose }: Props) {
   const [search, setSearch] = useState('');
   const [results, setResults] = useState<Profile[]>([]);
   const [searching, setSearching] = useState(false);
+  const [creating, setCreating] = useState(false);
   const { createConversation } = useConversations();
+  const { user } = useAuth();
   const router = useRouter();
 
+  // Charger tous les utilisateurs au montage, puis filtrer par recherche
   useEffect(() => {
-    if (!search.trim()) {
-      setResults([]);
-      return;
-    }
+    if (!isOpen) return;
 
     const fetchUsers = async () => {
       setSearching(true);
-      // Recherche d'utilisateurs
-      const { data, error } = await supabase
+      
+      let query = supabase
         .from('profiles')
         .select('*')
-        .ilike('username', `%${search}%`)
-        .limit(10);
+        .limit(20);
+
+      // Exclure l'utilisateur courant
+      if (user?.id) {
+        query = query.neq('id', user.id);
+      }
+
+      // Filtrer par nom si recherche
+      if (search.trim()) {
+        query = query.ilike('username', `%${search}%`);
+      }
+
+      // Trier par nom
+      query = query.order('username', { ascending: true });
+
+      const { data, error } = await query;
       
       if (!error && data) {
-        setResults(data);
+        setResults(data as Profile[]);
       }
       setSearching(false);
     };
 
-    const timer = setTimeout(fetchUsers, 300);
+    const timer = setTimeout(fetchUsers, 200);
     return () => clearTimeout(timer);
-  }, [search]);
+  }, [search, isOpen, user?.id]);
 
   if (!isOpen) return null;
 
   const handleCreate = async (userId: string) => {
+    if (creating) return;
+    setCreating(true);
     try {
       const convId = await createConversation(userId);
       onClose();
       router.push(`/chat/${convId}`);
     } catch (err) {
-      console.error(err);
+      console.error('Erreur création conversation :', err);
+    } finally {
+      setCreating(false);
     }
   };
 
@@ -82,17 +101,23 @@ export default function NewConversationModal({ isOpen, onClose }: Props) {
 
         <div className="flex-1 overflow-y-auto p-2">
           {searching && <p className="text-center text-sm text-gray-500 py-4">Recherche...</p>}
-          {!searching && search && results.length === 0 && (
-            <p className="text-center text-sm text-gray-500 py-4">Aucun utilisateur trouvé.</p>
+          
+          {!searching && results.length === 0 && (
+            <p className="text-center text-sm text-gray-500 py-4">
+              {search ? 'Aucun utilisateur trouvé.' : 'Aucun autre utilisateur inscrit.'}
+            </p>
           )}
-          {!searching && results.map(user => (
+          
+          {!searching && results.map(u => (
             <div 
-              key={user.id} 
-              onClick={() => handleCreate(user.id)}
-              className="flex items-center p-3 hover:bg-gray-50 rounded-lg cursor-pointer transition-colors"
+              key={u.id} 
+              onClick={() => handleCreate(u.id)}
+              className={`flex items-center p-3 hover:bg-gray-50 rounded-lg cursor-pointer transition-colors ${creating ? 'opacity-50 pointer-events-none' : ''}`}
             >
-              <UserAvatar username={user.username} avatarUrl={user.avatar_url} />
-              <span className="ml-3 font-medium text-gray-900">{user.username}</span>
+              <UserAvatar username={u.username} avatarUrl={u.avatar_url} />
+              <div className="ml-3">
+                <span className="font-medium text-gray-900">{u.username}</span>
+              </div>
             </div>
           ))}
         </div>
