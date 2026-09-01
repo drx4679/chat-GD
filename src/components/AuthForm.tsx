@@ -16,10 +16,19 @@ export default function AuthForm() {
     e.preventDefault();
     setError(null);
     try {
+      let result;
       if (isLogin) {
-        await signIn(email, password);
+        result = await signIn(email, password);
       } else {
-        await signUp(email, password, username);
+        if (password.length < 6) {
+          setError('Le mot de passe doit contenir au moins 6 caractères');
+          return;
+        }
+        result = await signUp(email, password, username);
+      }
+      // Les méthodes Supabase retournent l'erreur au lieu de la throw
+      if (result?.error) {
+        setError(result.error.message || 'Une erreur est survenue');
       }
     } catch (err: any) {
       setError(err.message || 'Une erreur est survenue');
