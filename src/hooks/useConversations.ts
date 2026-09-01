@@ -111,51 +111,17 @@ export function useConversations(): UseConversationsReturn {
   const createConversation = async (otherUserId: string): Promise<string> => {
     if (!user) throw new Error('Non authentifié');
 
-    // Vérifier si une conversation 1-to-1 existe déjà via RPC
-    const { data: myConvs } = await supabase
-      .rpc('get_user_conversations', { p_user_id: user.id });
+    // Utiliser la fonction RPC qui gère la déduplication et la création
+    const { data, error } = await supabase
+      .rpc('create_conversation', { p_other_user_id: otherUserId });
 
-    if (myConvs) {
-      for (const conv of myConvs) {
-        const { data: parts } = await supabase
-          .rpc('get_conversation_participants', { p_conversation_id: conv.conversation_id });
-        
-        if (parts && parts.length === 2) {
-          const hasOther = parts.some((p: any) => p.user_id === otherUserId);
-          if (hasOther) {
-            return conv.conversation_id; // Conversation existante
-          }
-        }
-      }
-    }
-
-    // Créer une nouvelle conversation
-    const { data: newConv, error: createError } = await supabase
-      .from('conversations')
-      .insert({ updated_at: new Date().toISOString() })
-      .select('id')
-      .single();
-
-    if (createError || !newConv) {
-      console.error('Erreur création conversation :', createError);
+    if (error || !data) {
+      console.error('Erreur création conversation :', error);
       throw new Error('Impossible de créer la conversation');
     }
 
-    // Ajouter les deux participants
-    const { error: partError } = await supabase
-      .from('conversation_participants')
-      .insert([
-        { conversation_id: newConv.id, user_id: user.id },
-        { conversation_id: newConv.id, user_id: otherUserId }
-      ]);
-
-    if (partError) {
-      console.error('Erreur ajout participants :', partError);
-      throw new Error('Impossible d\'ajouter les participants');
-    }
-
     await fetchConversations();
-    return newConv.id;
+    return data as string;
   };
 
   return { conversations, loading, createConversation };

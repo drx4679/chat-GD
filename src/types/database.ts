@@ -144,6 +144,10 @@ export type Database = {
           last_seen: string;
         }[];
       };
+      create_conversation: {
+        Args: { p_other_user_id: string };
+        Returns: string;
+      };
     };
     Enums: {};
     CompositeTypes: {};
