@@ -86,20 +86,26 @@ export function useConversations(): UseConversationsReturn {
     fetchConversations();
 
     // S'abonner aux nouveaux messages pour rafraîchir la liste
-    const channelName = `conv_updates_${user.id}`;
-    const channel = supabase.channel(channelName);
+    // Nom unique avec timestamp pour éviter les conflits React 18 Strict Mode
+    const channelName = `conv_${user.id}_${Date.now()}`;
     
-    channel.on(
-      'postgres_changes',
-      { event: 'INSERT', schema: 'public', table: 'messages' },
-      () => { fetchConversations(); }
-    );
-    
-    channel.subscribe();
+    try {
+      const channel = supabase
+        .channel(channelName)
+        .on(
+          'postgres_changes',
+          { event: 'INSERT', schema: 'public', table: 'messages' },
+          () => { fetchConversations(); }
+        )
+        .subscribe();
 
-    return () => {
-      supabase.removeChannel(channel);
-    };
+      return () => {
+        supabase.removeChannel(channel);
+      };
+    } catch (err) {
+      console.warn('Erreur subscription Realtime:', err);
+      return () => {};
+    }
   }, [user, fetchConversations]);
 
   const createConversation = async (otherUserId: string): Promise<string> => {
