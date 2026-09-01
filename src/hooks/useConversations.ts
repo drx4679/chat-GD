@@ -20,59 +20,42 @@ export function useConversations(): UseConversationsReturn {
     if (!user) return;
 
     try {
-      // 1. Récupérer les conversations où l'utilisateur est participant
-      const { data: participations, error: partError } = await supabase
-        .from('conversation_participants')
-        .select('conversation_id')
-        .eq('user_id', user.id);
+      // Utiliser la fonction RPC pour contourner le RLS
+      const { data: convs, error: convError } = await supabase
+        .rpc('get_user_conversations', { p_user_id: user.id });
 
-      if (partError || !participations) {
+      if (convError || !convs) {
+        console.error('Erreur get_user_conversations:', convError);
         setLoading(false);
         return;
       }
 
-      const convIds = participations.map(p => p.conversation_id);
-      if (convIds.length === 0) {
+      if (convs.length === 0) {
         setConversations([]);
         setLoading(false);
         return;
       }
 
-      // 2. Récupérer les conversations avec les participants
-      const { data: convs, error: convError } = await supabase
-        .from('conversations')
-        .select('*, conversation_participants(user_id)')
-        .in('id', convIds)
-        .order('updated_at', { ascending: false });
-
-      if (convError || !convs) {
-        setLoading(false);
-        return;
-      }
-
-      // 3. Pour chaque conversation, récupérer les profils et le dernier message
+      // Pour chaque conversation, récupérer les participants et le dernier message
       const formatted: ConversationWithDetails[] = await Promise.all(
         convs.map(async (c: any) => {
-          const participantIds = (c.conversation_participants || []).map((p: any) => p.user_id);
-          
-          // Récupérer les profils des participants
-          const { data: profiles } = participantIds.length > 0
-            ? await supabase.from('profiles').select('*').in('id', participantIds)
-            : { data: [] };
+          // Récupérer les participants via RPC
+          const { data: participants } = await supabase
+            .rpc('get_conversation_participants', { p_conversation_id: c.conversation_id });
 
-          // Récupérer uniquement le dernier message (pas tous)
+          // Récupérer le dernier message
           const { data: lastMessages } = await supabase
             .from('messages')
             .select('*')
-            .eq('conversation_id', c.id)
+            .eq('conversation_id', c.conversation_id)
             .order('created_at', { ascending: false })
             .limit(1);
 
           return {
-            id: c.id,
+            id: c.conversation_id,
             created_at: c.created_at,
             updated_at: c.updated_at,
-            participants: (profiles || []) as Profile[],
+            participants: (participants || []) as Profile[],
             last_message: (lastMessages && lastMessages.length > 0 ? lastMessages[0] : null) as Message | null,
             unread_count: 0,
           };
@@ -97,7 +80,6 @@ export function useConversations(): UseConversationsReturn {
     fetchConversations();
 
     // S'abonner aux nouveaux messages pour rafraîchir la liste
-    // Utiliser un nom unique pour éviter les conflits de canaux
     const channelName = `conv_updates_${user.id}`;
     const channel = supabase.channel(channelName);
     
@@ -117,23 +99,21 @@ export function useConversations(): UseConversationsReturn {
   const createConversation = async (otherUserId: string): Promise<string> => {
     if (!user) throw new Error('Non authentifié');
 
-    // Vérifier si une conversation 1-to-1 existe déjà entre les deux users
-    const { data: userConvs } = await supabase
-      .from('conversation_participants')
-      .select('conversation_id')
-      .eq('user_id', user.id);
-      
-    const { data: otherConvs } = await supabase
-      .from('conversation_participants')
-      .select('conversation_id')
-      .eq('user_id', otherUserId);
+    // Vérifier si une conversation 1-to-1 existe déjà via RPC
+    const { data: myConvs } = await supabase
+      .rpc('get_user_conversations', { p_user_id: user.id });
 
-    if (userConvs && otherConvs) {
-      const userIds = new Set(userConvs.map(c => c.conversation_id));
-      const existing = otherConvs.find(c => userIds.has(c.conversation_id));
-      
-      if (existing) {
-        return existing.conversation_id; // Conversation existante
+    if (myConvs) {
+      for (const conv of myConvs) {
+        const { data: parts } = await supabase
+          .rpc('get_conversation_participants', { p_conversation_id: conv.conversation_id });
+        
+        if (parts && parts.length === 2) {
+          const hasOther = parts.some((p: any) => p.user_id === otherUserId);
+          if (hasOther) {
+            return conv.conversation_id; // Conversation existante
+          }
+        }
       }
     }
 
