@@ -126,7 +126,25 @@ export type Database = {
       };
     };
     Views: {};
-    Functions: {};
+    Functions: {
+      get_user_conversations: {
+        Args: { p_user_id: string };
+        Returns: {
+          conversation_id: string;
+          created_at: string;
+          updated_at: string;
+        }[];
+      };
+      get_conversation_participants: {
+        Args: { p_conversation_id: string };
+        Returns: {
+          user_id: string;
+          username: string;
+          avatar_url: string | null;
+          last_seen: string;
+        }[];
+      };
+    };
     Enums: {};
     CompositeTypes: {};
   };
