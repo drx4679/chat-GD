@@ -63,13 +63,37 @@ export function useMessages(conversationId: string): UseMessagesReturn {
   const sendMessage = async (content: string) => {
     if (!user || !conversationId) return;
 
-    await supabase
+    // Ajouter le message localement immédiatement (optimistic update)
+    const tempId = crypto.randomUUID();
+    const optimisticMessage: Message = {
+      id: tempId,
+      conversation_id: conversationId,
+      sender_id: user.id,
+      content,
+      created_at: new Date().toISOString(),
+      read_at: null,
+    };
+    setMessages(prev => [...prev, optimisticMessage]);
+
+    // Insérer dans la base de données
+    const { data, error } = await supabase
       .from('messages')
       .insert({
         conversation_id: conversationId,
         sender_id: user.id,
         content
-      });
+      })
+      .select()
+      .single();
+
+    if (error) {
+      // En cas d'erreur, retirer le message optimiste
+      setMessages(prev => prev.filter(m => m.id !== tempId));
+      console.error('Erreur envoi message :', error);
+    } else if (data) {
+      // Remplacer le message optimiste par le vrai (avec l'id serveur)
+      setMessages(prev => prev.map(m => m.id === tempId ? data as Message : m));
+    }
   };
 
   const markAsRead = async (messageId: string) => {
