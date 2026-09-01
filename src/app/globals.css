@@ -1,0 +1,22 @@
+/* Directives de base Tailwind CSS */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Styles de base pour l'application de chat */
+@layer base {
+  body {
+    @apply bg-chat-bg text-gray-900 antialiased;
+  }
+}
+
+/* Utilitaires pour masquer la barre de défilement (mobile-friendly) */
+@layer utilities {
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+}

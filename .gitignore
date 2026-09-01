@@ -1,0 +1,30 @@
+# Dépendances
+/node_modules
+/.pnp
+.pnp.js
+
+# Build et cache Next.js
+/.next/
+/out/
+.swc/
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Variables d'environnement
+.env
+.env*.local
+!.env.example
+
+# Netlify
+/.netlify/
+
+# Fichiers système et IDE
+.DS_Store
+*.pem
+.idea/
+.vscode/
+*.tsbuildinfo
+next-env.d.ts
