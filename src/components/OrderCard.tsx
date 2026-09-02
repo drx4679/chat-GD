@@ -129,15 +129,15 @@ export default function OrderCard({ orderNumber, isOwn }: OrderCardProps) {
   const nextStatus = currentIdx >= 0 && currentIdx < STATUS_FLOW.length - 1 ? STATUS_FLOW[currentIdx + 1] : null;
 
   return (
-    <div className={`flex ${isOwn ? 'justify-end' : 'justify-start'}`}>
-      <div className="bg-white border border-gray-200/80 rounded-2xl overflow-hidden max-w-[95%] sm:max-w-[80%] md:max-w-[70%] shadow-xs">
+    <div className={`flex w-full ${isOwn ? 'justify-end' : 'justify-start'}`}>
+      <div className="bg-white border border-gray-200/80 rounded-2xl overflow-hidden w-full max-w-[100%] sm:max-w-[85%] md:max-w-[75%] shadow-xs">
         {/* Header */}
-        <div className="bg-gradient-to-r from-indigo-600 via-indigo-600 to-purple-600 px-4 py-3 flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 text-white opacity-90" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+        <div className="bg-gradient-to-r from-indigo-600 via-indigo-600 to-purple-600 px-3.5 py-2.5 sm:px-4 sm:py-3 flex items-center justify-between gap-2">
+          <div className="flex items-center space-x-1.5 min-w-0 flex-1">
+            <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white opacity-90 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
             </svg>
-            <span className="text-white font-semibold text-sm tracking-tight">{order.order_number}</span>
+            <span className="text-white font-semibold text-xs sm:text-sm tracking-tight truncate">{order.order_number}</span>
           </div>
           {(() => {
             const badge = order.is_delivered
@@ -150,7 +150,7 @@ export default function OrderCard({ orderNumber, isOwn }: OrderCardProps) {
               ? { label: 'Validée', color: 'text-emerald-700 bg-emerald-100/90 border-emerald-200/60' }
               : { label: 'En attente', color: 'text-amber-800 bg-amber-100/90 border-amber-200/60' };
             return (
-              <span className={`${badge.color} border text-[11px] font-semibold px-2.5 py-0.5 rounded-full flex items-center space-x-1 shadow-2xs`}>
+              <span className={`${badge.color} border text-[10px] sm:text-[11px] font-semibold px-2 py-0.5 sm:px-2.5 rounded-full flex items-center space-x-1 shadow-2xs flex-shrink-0`}>
                 {badge.label !== 'En attente' && (
                   <svg xmlns="http://www.w3.org/2000/svg" className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
@@ -163,7 +163,7 @@ export default function OrderCard({ orderNumber, isOwn }: OrderCardProps) {
         </div>
 
         {/* Body */}
-        <div className="p-4 space-y-2.5">
+        <div className="p-3 sm:p-4 space-y-2.5">
           {/* Client */}
           <div className="flex items-start space-x-2.5">
             <div className="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 flex-shrink-0 mt-0.5">

@@ -44,11 +44,11 @@ export default function ConversationPage() {
   return (
     <div className="flex-1 flex flex-col h-full bg-[#f8fafc] relative">
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 bg-white/95 backdrop-blur-xs shadow-xs z-10">
-        <div className="flex items-center min-w-0">
+      <div className="flex items-center justify-between px-3.5 py-2.5 sm:px-4 sm:py-3 border-b border-gray-100 bg-white/95 backdrop-blur-xs shadow-xs z-10">
+        <div className="flex items-center min-w-0 flex-1 mr-2">
           <button 
             onClick={() => router.push('/chat')}
-            className="md:hidden mr-2.5 p-1.5 text-gray-500 hover:text-gray-900 rounded-lg hover:bg-gray-100 transition-colors"
+            className="md:hidden mr-2 p-1.5 text-gray-500 hover:text-gray-900 rounded-lg hover:bg-gray-100 transition-colors flex-shrink-0"
             title="Retour aux discussions"
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -58,17 +58,17 @@ export default function ConversationPage() {
           
           {isOrderConversation ? (
             <>
-              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500 via-amber-500 to-amber-600 flex items-center justify-center flex-shrink-0 shadow-sm ring-2 ring-white">
-                <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-gradient-to-br from-orange-500 via-amber-500 to-amber-600 flex items-center justify-center flex-shrink-0 shadow-sm ring-2 ring-white">
+                <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 sm:w-5 sm:h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
                 </svg>
               </div>
-              <div className="ml-3 min-w-0">
-                <div className="flex items-center space-x-2">
-                  <h2 className="font-semibold text-gray-900 leading-snug text-sm md:text-base truncate">
+              <div className="ml-2.5 min-w-0 flex-1">
+                <div className="flex items-center space-x-1.5">
+                  <h2 className="font-semibold text-gray-900 leading-tight text-sm sm:text-base truncate">
                     {conversation.contact_name}
                   </h2>
-                  <span className="text-[10px] font-medium bg-amber-50 text-amber-700 border border-amber-200/60 px-1.5 py-0.5 rounded-md">
+                  <span className="hidden sm:inline-block text-[10px] font-medium bg-amber-50 text-amber-700 border border-amber-200/60 px-1.5 py-0.5 rounded-md flex-shrink-0">
                     Commande
                   </span>
                 </div>
@@ -86,8 +86,8 @@ export default function ConversationPage() {
                 size="md"
                 online={onlineUsers[otherParticipant.id]?.online}
               />
-              <div className="ml-3 min-w-0">
-                <h2 className="font-semibold text-gray-900 leading-snug text-sm md:text-base truncate">
+              <div className="ml-2.5 min-w-0 flex-1">
+                <h2 className="font-semibold text-gray-900 leading-tight text-sm sm:text-base truncate">
                   {otherParticipant.username}
                 </h2>
                 <PresenceIndicator 
@@ -100,18 +100,21 @@ export default function ConversationPage() {
         </div>
 
         <div className="flex items-center space-x-2 flex-shrink-0">
-          <OrderCounters compact />
+          <div className="hidden md:flex">
+            <OrderCounters compact />
+          </div>
 
-          {/* Quick action for order conversations in header */}
+          {/* Bouton appel client */}
           {isOrderConversation && conversation.contact_phone && (
             <a
               href={`tel:${conversation.contact_phone}`}
-              className="hidden sm:flex items-center space-x-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200/80 px-2.5 py-1 rounded-lg text-xs font-medium transition-all"
+              className="flex items-center space-x-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200/80 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all shadow-2xs"
+              title={`Appeler ${conversation.contact_phone}`}
             >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5 text-emerald-600" viewBox="0 0 24 24" fill="currentColor">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5 text-emerald-600 flex-shrink-0" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M6.62 10.79a15.053 15.053 0 006.59 6.59l2.2-2.2a1 1 0 011.01-.24c1.12.37 2.33.57 3.57.57a1 1 0 011 1V20a1 1 0 01-1 1A17 17 0 013 4a1 1 0 011-1h3.5a1 1 0 011 1c0 1.25.2 2.45.57 3.57a1 1 0 01-.24 1.01l-2.2 2.2z"/>
               </svg>
-              <span>Appeler</span>
+              <span className="hidden sm:inline">Appeler</span>
             </a>
           )}
         </div>
@@ -120,18 +123,20 @@ export default function ConversationPage() {
       {/* Messages */}
       <MessageList conversationId={conversationId} />
 
-      {/* Input ou bouton appel */}
+      {/* Input ou bouton appel au bas */}
       <div className="mt-auto z-10 bg-white">
         {isOrderConversation ? (
-          <div className="border-t border-gray-100 p-3 bg-white flex items-center justify-center">
+          <div className="border-t border-gray-100 p-2.5 sm:p-3 bg-white flex items-center justify-center">
             <a
               href={`tel:${conversation.contact_phone}`}
-              className="w-full sm:w-auto flex items-center justify-center space-x-2.5 bg-emerald-600 hover:bg-emerald-700 active:scale-[0.99] text-white font-medium py-2.5 px-6 rounded-xl transition-all shadow-sm shadow-emerald-600/20 text-sm"
+              className="w-full flex items-center justify-center space-x-2 bg-emerald-600 hover:bg-emerald-700 active:scale-[0.99] text-white font-semibold py-2.5 px-4 rounded-xl transition-all shadow-sm shadow-emerald-600/20 text-xs sm:text-sm"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 flex-shrink-0" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M6.62 10.79a15.053 15.053 0 006.59 6.59l2.2-2.2a1 1 0 011.01-.24c1.12.37 2.33.57 3.57.57a1 1 0 011 1V20a1 1 0 01-1 1A17 17 0 013 4a1 1 0 011-1h3.5a1 1 0 011 1c0 1.25.2 2.45.57 3.57a1 1 0 01-.24 1.01l-2.2 2.2z"/>
               </svg>
-              <span>Appeler le client ({conversation.contact_phone || conversation.contact_name})</span>
+              <span className="truncate">
+                Appeler le client ({conversation.contact_phone || conversation.contact_name})
+              </span>
             </a>
           </div>
         ) : (

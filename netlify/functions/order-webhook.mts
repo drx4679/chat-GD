@@ -33,14 +33,18 @@ export default async (req: Request, context: Context): Promise<Response> => {
 
     const payload = (await req.json()) as OrderWebhookPayload;
 
-    if (!payload.record?.order_number) {
-      return new Response(JSON.stringify({ message: 'Événement ignoré' }), { status: 200 });
+    const record = payload.record || (payload as any);
+    const orderNumber = record.order_number || record.orderNumber || record.order_id || record.id || `CMD-${Date.now()}`;
+    
+    if (!orderNumber) {
+      return new Response(JSON.stringify({ message: 'Événement ignoré : pas de numéro de commande' }), { status: 200 });
     }
 
-    const order = payload.record;
-    const customerName = order.customer_name || order.customer_phone;
-    const customerPhone = order.customer_phone;
-    const customerEmail = order.customer_email;
+    const customerName = record.customer_name || record.customerName || record.name || record.nom || record.client_name || record.customer_phone || record.phone || record.telephone || `Client #${orderNumber}`;
+    const customerPhone = record.customer_phone || record.customerPhone || record.phone || record.telephone || record.tel || '';
+    const customerEmail = record.customer_email || record.customerEmail || record.email || null;
+    const finalAmount = record.final_amount ?? record.finalAmount ?? record.total ?? record.amount ?? record.montant ?? 0;
+    const currency = record.currency || 'XOF';
 
     // Client admin pour la base du chat
     const chatSupabase = createClient(chatUrl, chatServiceKey, {
@@ -100,7 +104,7 @@ export default async (req: Request, context: Context): Promise<Response> => {
       .insert({
         conversation_id: conversationId,
         sender_id: sender.user_id,
-        content: `[ORDER:${order.order_number}]`,
+        content: `[ORDER:${orderNumber}]`,
       });
 
     if (msgError) {
@@ -108,46 +112,52 @@ export default async (req: Request, context: Context): Promise<Response> => {
       return new Response(JSON.stringify({ error: msgError.message }), { status: 500 });
     }
 
-    // Envoyer des notifications push à TOUS les participants
+    // Envoyer des notifications push à TOUS les appareils enregistrés
     try {
       const vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
       const vapidPrivateKey = process.env.VAPID_PRIVATE_KEY;
-      const vapidSubject = process.env.VAPID_SUBJECT;
+      const vapidSubject = process.env.VAPID_SUBJECT || 'mailto:contact@gdshopchat.com';
 
-      if (vapidPublicKey && vapidPrivateKey && vapidSubject) {
+      if (vapidPublicKey && vapidPrivateKey) {
         webpush.setVapidDetails(vapidSubject, vapidPublicKey, vapidPrivateKey);
 
-        // Récupérer tous les participants
-        const { data: allParticipants } = await chatSupabase
-          .from('conversation_participants')
-          .select('user_id')
-          .eq('conversation_id', conversationId);
+        // Récupérer tous les abonnements push enregistrés (tous les utilisateurs/appareils)
+        const { data: subscriptions } = await chatSupabase
+          .from('push_subscriptions')
+          .select('*');
 
-        if (allParticipants && allParticipants.length > 0) {
-          const participantIds = allParticipants.map(p => p.user_id);
+        if (subscriptions && subscriptions.length > 0) {
+          const payload = JSON.stringify({
+            title: `📦 Nouvelle commande ${orderNumber}`,
+            body: `${customerName} — ${new Intl.NumberFormat('fr-FR').format(finalAmount)} ${currency}`,
+            icon: '/icons/icon-192.png',
+            badge: '/icons/icon-192.png',
+            url: `/chat/${conversationId}`,
+            data: { 
+              url: `/chat/${conversationId}`,
+              orderNumber: orderNumber,
+            },
+          });
 
-          // Récupérer les abonnements push
-          const { data: subscriptions } = await chatSupabase
-            .from('push_subscriptions')
-            .select('*')
-            .in('user_id', participantIds);
-
-          if (subscriptions && subscriptions.length > 0) {
-            const payload = JSON.stringify({
-              title: `📦 Commande ${order.order_number}`,
-              body: `${customerName} — ${new Intl.NumberFormat('fr-FR').format(order.final_amount)} ${order.currency || 'XOF'}`,
-              data: { url: `/chat/${conversationId}` },
-            });
-
-            await Promise.allSettled(
-              subscriptions.map(sub =>
-                webpush.sendNotification(
+          await Promise.allSettled(
+            subscriptions.map(async (sub) => {
+              try {
+                await webpush.sendNotification(
                   { endpoint: sub.endpoint, keys: sub.keys as any },
                   payload
-                ).catch(() => {})
-              )
-            );
-          }
+                );
+              } catch (err: any) {
+                // Si l'abonnement a expiré (410 ou 404), le supprimer de la base
+                if (err.statusCode === 404 || err.statusCode === 410) {
+                  await chatSupabase
+                    .from('push_subscriptions')
+                    .delete()
+                    .eq('id', sub.id);
+                }
+                console.warn('Erreur envoi push commande à une souscription:', err.statusCode || err.message);
+              }
+            })
+          );
         }
       }
     } catch (pushErr) {
@@ -156,7 +166,7 @@ export default async (req: Request, context: Context): Promise<Response> => {
 
     return new Response(JSON.stringify({ 
       success: true, 
-      order_number: order.order_number,
+      order_number: orderNumber,
       conversation_id: conversationId,
       customer: customerName,
     }), {

@@ -119,17 +119,17 @@ export default function DeliveryTracker({ order, onUpdate }: Props) {
   };
 
   return (
-    <div className="bg-gradient-to-b from-slate-50/90 to-gray-50/80 border border-gray-100 rounded-xl p-3.5 mt-2">
-      <div className="flex items-center justify-between mb-3.5">
-        <h4 className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider">
+    <div className="bg-gradient-to-b from-slate-50/90 to-gray-50/80 border border-gray-100 rounded-xl p-2.5 sm:p-3.5 mt-2">
+      <div className="flex items-center justify-between mb-3">
+        <h4 className="text-[10px] sm:text-[11px] font-semibold text-gray-500 uppercase tracking-wider">
           Suivi de livraison
         </h4>
-        <span className="text-[10px] text-gray-400 font-medium">Cliquez pour actualiser</span>
+        <span className="text-[9px] sm:text-[10px] text-gray-400 font-medium">Touchez pour actualiser</span>
       </div>
 
       {/* Barre de progression */}
-      <div className="relative mb-3.5 px-1">
-        <div className="absolute top-[17px] left-6 right-6 h-0.5 bg-gray-200/80 rounded-full">
+      <div className="relative mb-3 px-1">
+        <div className="absolute top-[14px] sm:top-[16px] left-4 right-4 sm:left-6 sm:right-6 h-0.5 bg-gray-200/80 rounded-full">
           <div 
             className="h-full bg-emerald-500 rounded-full transition-all duration-300"
             style={{ width: `${Math.max(0, (activeStep / 3) * 100)}%` }}
@@ -143,22 +143,22 @@ export default function DeliveryTracker({ order, onUpdate }: Props) {
             const StepIcon = STEP_ICONS[idx];
 
             return (
-              <div key={step.key} className="flex flex-col items-center z-10">
+              <div key={step.key} className="flex flex-col items-center z-10 flex-1 max-w-[25%]">
                 <button
                   onClick={() => handleToggle(idx)}
                   disabled={updating !== null}
-                  className={`w-8 h-8 rounded-full flex items-center justify-center transition-all duration-200 active:scale-95 ${
+                  className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center transition-all duration-200 active:scale-95 ${
                     isActive
                       ? 'bg-emerald-600 text-white shadow-xs ring-2 ring-emerald-100'
                       : 'bg-white border border-gray-200 text-gray-400 hover:border-emerald-400 hover:text-emerald-600 shadow-2xs'
-                  } ${isCurrent ? 'ring-3 ring-emerald-300/60 ring-offset-1' : ''} ${
+                  } ${isCurrent ? 'ring-2 sm:ring-3 ring-emerald-300/60 ring-offset-1' : ''} ${
                     updating === step.key ? 'animate-pulse' : ''
                   }`}
                   title={step.label}
                 >
                   <StepIcon />
                 </button>
-                <span className={`text-[10px] mt-1.5 font-medium tracking-tight ${
+                <span className={`text-[9px] sm:text-[10px] mt-1 text-center font-medium tracking-tight leading-tight ${
                   isActive ? 'text-emerald-700 font-semibold' : 'text-gray-400'
                 }`}>
                   {step.label}
