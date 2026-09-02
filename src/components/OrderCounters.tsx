@@ -34,14 +34,25 @@ export default function OrderCounters({ compact = false }: Props) {
           <span className="text-[11px]">{counts.confirmed}</span>
         </div>
 
-        {/* En attente */}
+        {/* En attente / Nouvelles */}
         <div 
-          className="flex items-center space-x-1 bg-amber-50 border border-amber-200/70 text-amber-700 px-2 py-1 rounded-lg text-xs font-semibold"
-          title="Commandes en attente"
+          className={`flex items-center space-x-1 border px-2 py-1 rounded-lg text-xs font-semibold relative ${
+            counts.pending > 0 
+              ? 'bg-amber-50 border-amber-300 text-amber-800 ring-1 ring-amber-200/60' 
+              : 'bg-amber-50/70 border-amber-200/70 text-amber-700'
+          }`}
+          title="Commandes en attente / Nouvelles"
         >
-          <svg xmlns="http://www.w3.org/2000/svg" className="w-3 h-3 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
+          {counts.pending > 0 ? (
+            <span className="relative flex h-2 w-2 mr-0.5">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
+            </span>
+          ) : (
+            <svg xmlns="http://www.w3.org/2000/svg" className="w-3 h-3 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          )}
           <span className="text-[11px]">{counts.pending}</span>
         </div>
       </div>
@@ -74,15 +85,26 @@ export default function OrderCounters({ compact = false }: Props) {
         <span className="font-bold">{counts.confirmed}</span>
       </div>
 
-      {/* En attente */}
+      {/* En attente / Nouvelles avec marqueur animé */}
       <div 
-        className="flex-1 flex items-center justify-center space-x-1.5 bg-amber-50/80 border border-amber-200/70 text-amber-700 px-2 py-1.5 rounded-lg text-xs font-medium transition-all"
-        title="Commandes en attente"
+        className={`flex-1 flex items-center justify-center space-x-1.5 border px-2 py-1.5 rounded-lg text-xs font-medium transition-all relative ${
+          counts.pending > 0 
+            ? 'bg-amber-50 border-amber-300 text-amber-800 shadow-2xs' 
+            : 'bg-amber-50/80 border-amber-200/70 text-amber-700'
+        }`}
+        title="Commandes en attente de traitement"
       >
-        <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5 text-amber-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-        </svg>
-        <span className="text-[11px] text-amber-600 hidden sm:inline">Attente</span>
+        {counts.pending > 0 ? (
+          <span className="relative flex h-2 w-2 flex-shrink-0">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
+          </span>
+        ) : (
+          <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5 text-amber-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        )}
+        <span className="text-[11px] text-amber-700 hidden sm:inline font-medium">Attente</span>
         <span className="font-bold">{counts.pending}</span>
       </div>
     </div>

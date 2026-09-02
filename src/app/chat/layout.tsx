@@ -6,12 +6,22 @@ import { useAuth } from '@/hooks/useAuth';
 import ConversationList from '@/components/ConversationList';
 import NotificationPrompt from '@/components/NotificationPrompt';
 
+import { useConversations } from '@/hooks/useConversations';
 import OrderCounters from '@/components/OrderCounters';
 
 export default function ChatLayout({ children }: { children: React.ReactNode }) {
   const { user, loading, signOut } = useAuth();
+  const { conversations } = useConversations();
   const router = useRouter();
   const pathname = usePathname();
+
+  const totalUnread = conversations.reduce((acc, c) => acc + (c.unread_count || 0), 0);
+
+  useEffect(() => {
+    if (typeof document !== 'undefined') {
+      document.title = totalUnread > 0 ? `(${totalUnread}) Discussions — GD Shop Chat` : 'Discussions — GD Shop Chat';
+    }
+  }, [totalUnread]);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -41,6 +51,11 @@ export default function ChatLayout({ children }: { children: React.ReactNode }) 
               <div className="flex items-center space-x-2">
                 <div className="w-2 h-2 rounded-full bg-indigo-500"></div>
                 <h1 className="text-lg font-bold text-gray-900 tracking-tight">Discussions</h1>
+                {totalUnread > 0 && (
+                  <span className="bg-indigo-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full shadow-2xs animate-[popIn_0.15s_ease-out]">
+                    {totalUnread}
+                  </span>
+                )}
               </div>
               <button 
                 onClick={() => signOut()}
