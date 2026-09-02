@@ -54,7 +54,7 @@ export function useMessages(conversationId: string): UseMessagesReturn {
             });
 
             // Notification navigateur si le message vient d'un autre utilisateur
-            if (newMsg.sender_id !== user?.id && document.hidden) {
+            if (newMsg.sender_id !== user?.id) {
               if (Notification.permission === 'granted') {
                 new Notification('Nouveau message', {
                   body: newMsg.content.length > 100 ? newMsg.content.slice(0, 97) + '...' : newMsg.content,
