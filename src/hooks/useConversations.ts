@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/lib/supabase-browser';
 import type { Profile, Message, ConversationWithDetails } from '@/types/database';
 import { useAuth } from './useAuth';
+import { playNotificationSound } from '@/lib/sound';
 
 interface UseConversationsReturn {
   conversations: ConversationWithDetails[];
@@ -120,7 +121,25 @@ export function useConversations(): UseConversationsReturn {
         .on(
           'postgres_changes',
           { event: 'INSERT', schema: 'public', table: 'messages' },
-          () => { fetchConversations(); }
+          (payload) => {
+            const newMsg = payload.new as Message;
+            if (newMsg && newMsg.sender_id !== user.id) {
+              playNotificationSound();
+
+              // Si l'onglet est en arrière-plan et permission accordée, afficher une notification native
+              if (typeof window !== 'undefined' && document.visibilityState !== 'visible' && 'Notification' in window && Notification.permission === 'granted') {
+                try {
+                  const isOrder = newMsg.content?.startsWith('[ORDER:');
+                  new Notification(isOrder ? '📦 Nouvelle commande reçue' : '💬 Nouveau message', {
+                    body: isOrder ? 'Une nouvelle commande est arrivée sur votre boutique.' : newMsg.content,
+                    icon: '/icons/icon-192.png',
+                    tag: `msg-${newMsg.id}`,
+                  });
+                } catch {}
+              }
+            }
+            fetchConversations();
+          }
         )
         .on(
           'postgres_changes',
