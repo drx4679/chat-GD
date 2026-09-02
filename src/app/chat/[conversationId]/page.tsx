@@ -92,9 +92,23 @@ export default function ConversationPage() {
       {/* Messages */}
       <MessageList conversationId={conversationId} />
 
-      {/* Input */}
+      {/* Input ou bouton appel */}
       <div className="mt-auto z-10 bg-white">
-        <MessageInput onSend={sendMessage} />
+        {isOrderConversation ? (
+          <div className="border-t border-gray-200 p-3 flex items-center justify-center">
+            <a
+              href={`tel:${conversation.contact_phone}`}
+              className="flex items-center space-x-3 bg-green-500 hover:bg-green-600 text-white font-medium py-3 px-6 rounded-full transition-colors shadow-md"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M6.62 10.79a15.053 15.053 0 006.59 6.59l2.2-2.2a1 1 0 011.01-.24c1.12.37 2.33.57 3.57.57a1 1 0 011 1V20a1 1 0 01-1 1A17 17 0 013 4a1 1 0 011-1h3.5a1 1 0 011 1c0 1.25.2 2.45.57 3.57a1 1 0 01-.24 1.01l-2.2 2.2z"/>
+              </svg>
+              <span>Appeler {conversation.contact_name}</span>
+            </a>
+          </div>
+        ) : (
+          <MessageInput onSend={sendMessage} />
+        )}
       </div>
     </div>
   );
