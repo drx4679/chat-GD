@@ -78,21 +78,16 @@ self.addEventListener('push', (event) => {
     body: data.body,
     icon: data.icon || '/icons/icon-192.png',
     badge: '/icons/icon-192.png',
+    tag: data.data?.messageId ? `msg-${data.data.messageId}` : undefined,
     data: {
       url: data.url || '/chat',
     },
     vibrate: [100, 50, 100],
   };
 
+  // Toujours afficher — le webhook exclut déjà l'expéditeur
   event.waitUntil(
-    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clients) => {
-      // Si l'app est ouverte et visible, ne pas afficher la notification push
-      // (la notification navigateur via Realtime s'en charge)
-      const isVisible = clients.some((client) => client.visibilityState === 'visible');
-      if (isVisible) return;
-
-      return self.registration.showNotification(data.title, options);
-    })
+    self.registration.showNotification(data.title, options)
   );
 });
 
