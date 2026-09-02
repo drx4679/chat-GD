@@ -60,7 +60,7 @@ export async function subscribeToPush(userId: string): Promise<PushSubscription 
             auth: subscriptionJson.keys.auth,
           },
         },
-        { onConflict: 'endpoint' }
+        { onConflict: 'user_id,endpoint' }
       );
 
     if (error) {
