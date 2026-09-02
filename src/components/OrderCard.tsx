@@ -10,15 +10,15 @@ interface OrderCardProps {
   isOwn: boolean;
 }
 
-const STATUS_CONFIG: Record<OrderStatus, { label: string; color: string; bg: string }> = {
-  pending: { label: 'En attente', color: 'text-yellow-700', bg: 'bg-yellow-100' },
-  confirmed: { label: '✅ Validée', color: 'text-green-700', bg: 'bg-green-100' },
-  paid: { label: 'Payée', color: 'text-green-700', bg: 'bg-green-100' },
-  processing: { label: 'En préparation', color: 'text-indigo-700', bg: 'bg-indigo-100' },
-  shipped: { label: 'Expédiée', color: 'text-purple-700', bg: 'bg-purple-100' },
-  delivered: { label: 'Livrée', color: 'text-emerald-700', bg: 'bg-emerald-100' },
-  cancelled: { label: 'Annulée', color: 'text-red-700', bg: 'bg-red-100' },
-  refunded: { label: 'Remboursée', color: 'text-gray-700', bg: 'bg-gray-100' },
+const STATUS_CONFIG: Record<OrderStatus, { label: string; badgeLabel: string; color: string; bg: string }> = {
+  pending: { label: 'Confirmée', badgeLabel: 'En attente', color: 'text-yellow-700', bg: 'bg-yellow-100' },
+  confirmed: { label: 'En préparation', badgeLabel: 'Validée', color: 'text-green-700', bg: 'bg-green-100' },
+  paid: { label: 'En préparation', badgeLabel: 'Payée', color: 'text-green-700', bg: 'bg-green-100' },
+  processing: { label: 'Expédiée', badgeLabel: 'En préparation', color: 'text-indigo-700', bg: 'bg-indigo-100' },
+  shipped: { label: 'Livrée', badgeLabel: 'Expédiée', color: 'text-purple-700', bg: 'bg-purple-100' },
+  delivered: { label: 'Terminée', badgeLabel: 'Livrée', color: 'text-emerald-700', bg: 'bg-emerald-100' },
+  cancelled: { label: 'Annulée', badgeLabel: 'Annulée', color: 'text-red-700', bg: 'bg-red-100' },
+  refunded: { label: 'Remboursée', badgeLabel: 'Remboursée', color: 'text-gray-700', bg: 'bg-gray-100' },
 };
 
 const STATUS_FLOW: OrderStatus[] = ['pending', 'confirmed', 'processing', 'shipped', 'delivered'];
@@ -137,8 +137,13 @@ export default function OrderCard({ orderNumber, isOwn }: OrderCardProps) {
             <span className="text-lg">📦</span>
             <span className="text-white font-semibold text-sm">{order.order_number}</span>
           </div>
-          <span className={`${statusConfig.bg} ${statusConfig.color} text-xs font-semibold px-2.5 py-1 rounded-full`}>
-            {statusConfig.label}
+          <span className={`${statusConfig.bg} ${statusConfig.color} text-xs font-semibold px-2.5 py-1 rounded-full flex items-center space-x-1`}>
+            {order.status === 'confirmed' && (
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+              </svg>
+            )}
+            <span>{statusConfig.badgeLabel}</span>
           </span>
         </div>
 
