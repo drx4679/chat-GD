@@ -53,7 +53,7 @@ export default async (req: Request, context: Context): Promise<Response> => {
     const { data: newConv, error: convError } = await chatSupabase
       .from('conversations')
       .insert({
-        contact_name: `${customerName} — ${order.order_number}`,
+        contact_name: customerName,
         contact_phone: customerPhone,
         contact_email: customerEmail,
         updated_at: new Date().toISOString(),
