@@ -10,16 +10,51 @@ interface Props {
 }
 
 const STEPS = [
-  { key: 'confirmed', label: 'Confirmée', icon: '✅', field: null },
-  { key: 'is_processing', label: 'Préparation', icon: '📋', field: 'is_processing' as const },
-  { key: 'is_shipped', label: 'Expédié', icon: '🚚', field: 'is_shipped' as const },
-  { key: 'is_delivered', label: 'Livré', icon: '📍', field: 'is_delivered' as const },
+  { key: 'confirmed', label: 'Validée', field: null },
+  { key: 'is_processing', label: 'Préparation', field: 'is_processing' as const },
+  { key: 'is_shipped', label: 'Expédié', field: 'is_shipped' as const },
+  { key: 'is_delivered', label: 'Livré', field: 'is_delivered' as const },
 ];
+
+// Icônes SVG épurées
+function CheckIcon() {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+    </svg>
+  );
+}
+
+function BoxIcon() {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+    </svg>
+  );
+}
+
+function TruckIcon() {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10m10 0a2 2 0 11-4 0m4 0a2 2 0 10-4 0m10-2V9a1 1 0 00-1-1h-2l-3 4h5a1 1 0 001-1zm0 2a2 2 0 11-4 0 2 2 0 014 0z" />
+    </svg>
+  );
+}
+
+function MapPinIcon() {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a2 2 0 01-2.828 0l-4.243-4.243a8 8 0 1111.314 0z" />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+    </svg>
+  );
+}
+
+const STEP_ICONS = [CheckIcon, BoxIcon, TruckIcon, MapPinIcon];
 
 export default function DeliveryTracker({ order, onUpdate }: Props) {
   const [updating, setUpdating] = useState<string | null>(null);
 
-  // Déterminer l'étape actuelle
   const getActiveStep = (): number => {
     if (order.is_delivered) return 3;
     if (order.is_shipped) return 2;
@@ -34,18 +69,14 @@ export default function DeliveryTracker({ order, onUpdate }: Props) {
     if (updating) return;
     setUpdating(field);
 
-    // Si on active une étape, on active aussi les précédentes
-    // Si on désactive, on désactive aussi les suivantes
     const isCurrentlyActive = order[field];
     const updates: Partial<Order> = {};
 
     if (isCurrentlyActive) {
-      // Désactiver cette étape et les suivantes
       if (stepIndex <= 1) { updates.is_processing = false; updates.is_shipped = false; updates.is_delivered = false; }
       else if (stepIndex === 2) { updates.is_shipped = false; updates.is_delivered = false; }
       else if (stepIndex === 3) { updates.is_delivered = false; }
     } else {
-      // Activer cette étape et les précédentes
       if (stepIndex >= 1) updates.is_processing = true;
       if (stepIndex >= 2) updates.is_shipped = true;
       if (stepIndex >= 3) updates.is_delivered = true;
@@ -65,16 +96,16 @@ export default function DeliveryTracker({ order, onUpdate }: Props) {
 
   return (
     <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-4 mt-1">
-      <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">
-        🚚 Suivi de livraison
+      <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-4">
+        Suivi de livraison
       </h4>
 
       {/* Barre de progression */}
       <div className="relative mb-4">
-        <div className="absolute top-4 left-6 right-6 h-1 bg-gray-200 rounded-full">
+        <div className="absolute top-[18px] left-6 right-6 h-0.5 bg-gray-200 rounded-full">
           <div 
             className="h-full bg-gradient-to-r from-green-400 to-green-500 rounded-full transition-all duration-500"
-            style={{ width: `${(activeStep / 3) * 100}%` }}
+            style={{ width: `${Math.max(0, (activeStep / 3) * 100)}%` }}
           />
         </div>
 
@@ -82,6 +113,7 @@ export default function DeliveryTracker({ order, onUpdate }: Props) {
           {STEPS.map((step, idx) => {
             const isActive = idx <= activeStep;
             const isCurrent = idx === activeStep;
+            const StepIcon = STEP_ICONS[idx];
 
             return (
               <div key={step.key} className="flex flex-col items-center z-10">
@@ -89,21 +121,21 @@ export default function DeliveryTracker({ order, onUpdate }: Props) {
                   <button
                     onClick={() => handleToggle(step.field!, idx)}
                     disabled={updating !== null}
-                    className={`w-9 h-9 rounded-full flex items-center justify-center text-sm transition-all duration-300 ${
+                    className={`w-9 h-9 rounded-full flex items-center justify-center transition-all duration-300 ${
                       isActive
-                        ? 'bg-green-500 text-white shadow-md scale-110'
+                        ? 'bg-green-500 text-white shadow-md'
                         : 'bg-white border-2 border-gray-300 text-gray-400 hover:border-green-400 hover:text-green-500'
-                    } ${isCurrent ? 'ring-2 ring-green-300 ring-offset-1' : ''} ${
+                    } ${isCurrent ? 'ring-2 ring-green-200 ring-offset-1' : ''} ${
                       updating === step.field ? 'animate-pulse' : ''
                     }`}
                   >
-                    {step.icon}
+                    <StepIcon />
                   </button>
                 ) : (
-                  <div className={`w-9 h-9 rounded-full flex items-center justify-center text-sm ${
+                  <div className={`w-9 h-9 rounded-full flex items-center justify-center transition-all duration-300 ${
                     isActive ? 'bg-green-500 text-white shadow-md' : 'bg-white border-2 border-gray-300 text-gray-400'
                   }`}>
-                    {step.icon}
+                    <StepIcon />
                   </div>
                 )}
                 <span className={`text-[10px] mt-1.5 font-medium ${
@@ -125,10 +157,10 @@ export default function DeliveryTracker({ order, onUpdate }: Props) {
           order.is_processing ? 'bg-blue-100 text-blue-700' :
           'bg-gray-100 text-gray-600'
         }`}>
-          {order.is_delivered ? '✅ Livré au client' :
-           order.is_shipped ? '🚚 En cours de livraison' :
-           order.is_processing ? '📋 En préparation' :
-           '⏳ En attente de traitement'}
+          {order.is_delivered ? 'Livré au client' :
+           order.is_shipped ? 'En cours de livraison' :
+           order.is_processing ? 'En préparation' :
+           'En attente de traitement'}
         </span>
       </div>
     </div>
