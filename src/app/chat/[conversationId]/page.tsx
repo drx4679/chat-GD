@@ -21,6 +21,7 @@ export default function ConversationPage() {
   const { sendMessage } = useMessages(conversationId);
 
   const conversation = conversations.find(c => c.id === conversationId);
+  const isOrderConversation = !!conversation?.contact_name;
   const otherParticipant = conversation?.participants.find(p => p.id !== profile?.id) as Profile;
 
   if (convsLoading) {
@@ -31,7 +32,7 @@ export default function ConversationPage() {
     );
   }
 
-  if (!conversation || !otherParticipant) {
+  if (!conversation || (!otherParticipant && !isOrderConversation)) {
     return (
       <div className="flex-1 flex items-center justify-center bg-gray-50">
         <p className="text-gray-500">Conversation introuvable</p>
@@ -52,22 +53,40 @@ export default function ConversationPage() {
           </svg>
         </button>
         
-        <UserAvatar 
-          username={otherParticipant.username} 
-          avatarUrl={otherParticipant.avatar_url}
-          size="md"
-          online={onlineUsers[otherParticipant.id]?.online}
-        />
-        
-        <div className="ml-3">
-          <h2 className="font-semibold text-gray-900 leading-tight">
-            {otherParticipant.username}
-          </h2>
-          <PresenceIndicator 
-            userId={otherParticipant.id} 
-            onlineUsers={onlineUsers} 
-          />
-        </div>
+        {isOrderConversation ? (
+          <>
+            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-400 to-red-500 flex items-center justify-center flex-shrink-0">
+              <span className="text-white text-lg">🛒</span>
+            </div>
+            <div className="ml-3">
+              <h2 className="font-semibold text-gray-900 leading-tight">
+                {conversation.contact_name}
+              </h2>
+              <p className="text-xs text-gray-500">
+                {conversation.contact_phone}
+                {conversation.contact_email ? ` • ${conversation.contact_email}` : ''}
+              </p>
+            </div>
+          </>
+        ) : (
+          <>
+            <UserAvatar 
+              username={otherParticipant.username} 
+              avatarUrl={otherParticipant.avatar_url}
+              size="md"
+              online={onlineUsers[otherParticipant.id]?.online}
+            />
+            <div className="ml-3">
+              <h2 className="font-semibold text-gray-900 leading-tight">
+                {otherParticipant.username}
+              </h2>
+              <PresenceIndicator 
+                userId={otherParticipant.id} 
+                onlineUsers={onlineUsers} 
+              />
+            </div>
+          </>
+        )}
       </div>
 
       {/* Messages */}

@@ -59,6 +59,13 @@ export function useConversations(): UseConversationsReturn {
             .neq('sender_id', user!.id)
             .is('read_at', null);
 
+          // Récupérer les infos contact de la conversation
+          const { data: convDetails } = await supabase
+            .from('conversations')
+            .select('contact_name, contact_phone, contact_email')
+            .eq('id', c.conversation_id)
+            .single();
+
           return {
             id: c.conversation_id,
             created_at: c.created_at,
@@ -72,6 +79,9 @@ export function useConversations(): UseConversationsReturn {
             })) as Profile[],
             last_message: (lastMessages && lastMessages.length > 0 ? lastMessages[0] : null) as Message | null,
             unread_count: unreadCount || 0,
+            contact_name: convDetails?.contact_name || null,
+            contact_phone: convDetails?.contact_phone || null,
+            contact_email: convDetails?.contact_email || null,
           };
         })
       );

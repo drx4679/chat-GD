@@ -15,10 +15,19 @@ export default function ConversationItem({ conversation, currentUserId }: Conver
   const pathname = usePathname();
   const isActive = pathname === `/chat/${conversation.id}`;
   
-  // Trouver l'autre participant
+  // Conversation client (commande) ou conversation normale
+  const isOrderConversation = !!conversation.contact_name;
+  
+  // Trouver l'autre participant (conversations normales)
   const otherParticipant = conversation.participants.find(p => p.id !== currentUserId) as Profile;
   
-  if (!otherParticipant) return null;
+  const displayName = isOrderConversation 
+    ? conversation.contact_name! 
+    : (otherParticipant?.username || 'Utilisateur');
+
+  const displaySubtitle = isOrderConversation
+    ? conversation.contact_phone || ''
+    : '';
 
   const lastMessage = conversation.last_message;
   const timeString = lastMessage 
@@ -26,6 +35,16 @@ export default function ConversationItem({ conversation, currentUserId }: Conver
     : '';
 
   const hasUnread = conversation.unread_count > 0;
+
+  // Déterminer le preview du dernier message
+  let lastMessagePreview = 'Nouvelle conversation';
+  if (lastMessage) {
+    if (lastMessage.content.startsWith('[ORDER:')) {
+      lastMessagePreview = '📦 Nouvelle commande';
+    } else {
+      lastMessagePreview = (lastMessage.sender_id === currentUserId ? '✓ ' : '') + lastMessage.content;
+    }
+  }
 
   return (
     <Link 
@@ -35,25 +54,34 @@ export default function ConversationItem({ conversation, currentUserId }: Conver
       }`}
     >
       <div className="flex items-center p-4">
-        <UserAvatar 
-          username={otherParticipant.username} 
-          avatarUrl={otherParticipant.avatar_url} 
-        />
+        {isOrderConversation ? (
+          // Avatar client commande
+          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-400 to-red-500 flex items-center justify-center flex-shrink-0">
+            <span className="text-white text-lg">🛒</span>
+          </div>
+        ) : (
+          <UserAvatar 
+            username={otherParticipant?.username || '?'} 
+            avatarUrl={otherParticipant?.avatar_url} 
+          />
+        )}
         <div className="ml-3 flex-1 overflow-hidden">
           <div className="flex justify-between items-baseline">
-            <h3 className={`truncate ${hasUnread ? 'font-bold text-gray-900' : 'font-medium text-gray-900'}`}>
-              {otherParticipant.username}
-            </h3>
+            <div className="truncate">
+              <h3 className={`truncate ${hasUnread ? 'font-bold text-gray-900' : 'font-medium text-gray-900'}`}>
+                {displayName}
+              </h3>
+              {displaySubtitle && (
+                <span className="text-xs text-gray-400">{displaySubtitle}</span>
+              )}
+            </div>
             <span className={`text-xs flex-shrink-0 ml-2 ${hasUnread ? 'text-indigo-500 font-semibold' : 'text-gray-400'}`}>
               {timeString}
             </span>
           </div>
           <div className="flex justify-between items-center mt-0.5">
             <p className={`text-sm truncate ${hasUnread ? 'text-gray-800 font-medium' : 'text-gray-500'}`}>
-              {lastMessage 
-                ? (lastMessage.sender_id === currentUserId ? '✓ ' : '') + lastMessage.content 
-                : 'Nouvelle conversation'
-              }
+              {lastMessagePreview}
             </p>
             {hasUnread && (
               <span className="ml-2 bg-indigo-500 text-white text-xs font-bold min-w-[20px] h-5 flex items-center justify-center rounded-full flex-shrink-0 px-1.5">

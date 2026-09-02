@@ -33,16 +33,25 @@ export type Database = {
           id: string;
           created_at: string;
           updated_at: string;
+          contact_name: string | null;
+          contact_phone: string | null;
+          contact_email: string | null;
         };
         Insert: {
           id?: string;
           created_at?: string;
           updated_at?: string;
+          contact_name?: string | null;
+          contact_phone?: string | null;
+          contact_email?: string | null;
         };
         Update: {
           id?: string;
           created_at?: string;
           updated_at?: string;
+          contact_name?: string | null;
+          contact_phone?: string | null;
+          contact_email?: string | null;
         };
         Relationships: [];
       };
