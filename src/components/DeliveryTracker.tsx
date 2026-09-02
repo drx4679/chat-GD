@@ -24,7 +24,8 @@ export default function DeliveryTracker({ order, onUpdate }: Props) {
     if (order.is_delivered) return 3;
     if (order.is_shipped) return 2;
     if (order.is_processing) return 1;
-    return 0;
+    if (order.status !== 'pending') return 0;
+    return -1;
   };
 
   const activeStep = getActiveStep();

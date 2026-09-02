@@ -12,7 +12,7 @@ interface OrderCardProps {
 
 const STATUS_CONFIG: Record<OrderStatus, { label: string; color: string; bg: string }> = {
   pending: { label: 'En attente', color: 'text-yellow-700', bg: 'bg-yellow-100' },
-  confirmed: { label: 'Confirmée', color: 'text-blue-700', bg: 'bg-blue-100' },
+  confirmed: { label: '✅ Validée', color: 'text-green-700', bg: 'bg-green-100' },
   paid: { label: 'Payée', color: 'text-green-700', bg: 'bg-green-100' },
   processing: { label: 'En préparation', color: 'text-indigo-700', bg: 'bg-indigo-100' },
   shipped: { label: 'Expédiée', color: 'text-purple-700', bg: 'bg-purple-100' },
