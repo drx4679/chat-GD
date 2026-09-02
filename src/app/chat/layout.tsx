@@ -3,19 +3,16 @@
 import { useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
+import { ChatProvider, useChat } from '@/context/ChatContext';
 import ConversationList from '@/components/ConversationList';
 import NotificationPrompt from '@/components/NotificationPrompt';
-
-import { useConversations } from '@/hooks/useConversations';
 import OrderCounters from '@/components/OrderCounters';
 
-export default function ChatLayout({ children }: { children: React.ReactNode }) {
+function ChatLayoutContent({ children }: { children: React.ReactNode }) {
   const { user, loading, signOut } = useAuth();
-  const { conversations } = useConversations();
+  const { totalUnread } = useChat();
   const router = useRouter();
   const pathname = usePathname();
-
-  const totalUnread = conversations.reduce((acc, c) => acc + (c.unread_count || 0), 0);
 
   useEffect(() => {
     if (typeof document !== 'undefined') {
@@ -83,5 +80,13 @@ export default function ChatLayout({ children }: { children: React.ReactNode }) 
         </div>
       </div>
     </div>
+  );
+}
+
+export default function ChatLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <ChatProvider>
+      <ChatLayoutContent>{children}</ChatLayoutContent>
+    </ChatProvider>
   );
 }

@@ -1,6 +1,7 @@
 'use client';
 
 // Bulle d'un message avec indicateurs de lecture
+import { memo } from 'react';
 import { Message } from '@/types/database';
 
 interface Props {
@@ -9,7 +10,7 @@ interface Props {
   senderName?: string;
 }
 
-export default function MessageBubble({ message, isOwn, senderName }: Props) {
+function MessageBubbleComponent({ message, isOwn, senderName }: Props) {
   const timeString = new Date(message.created_at).toLocaleTimeString('fr-FR', { 
     hour: '2-digit', 
     minute: '2-digit' 
@@ -35,13 +36,13 @@ export default function MessageBubble({ message, isOwn, senderName }: Props) {
           <span className="flex items-center">
             {message.read_at ? (
               // Double check bleu = lu
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5 text-indigo-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5 text-indigo-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
                 <polyline points="18 7 11 14 7 10"></polyline>
                 <polyline points="22 7 15 14 13 12"></polyline>
               </svg>
             ) : (
               // Simple check gris = envoyé
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
                 <polyline points="20 6 9 17 4 12"></polyline>
               </svg>
             )}
@@ -51,3 +52,5 @@ export default function MessageBubble({ message, isOwn, senderName }: Props) {
     </div>
   );
 }
+
+export default memo(MessageBubbleComponent);

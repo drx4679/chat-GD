@@ -1,7 +1,7 @@
 'use client';
 
 // Liste des messages avec support des commandes
-import { useEffect, useRef, useCallback } from 'react';
+import { useEffect, useRef, useCallback, useMemo, memo } from 'react';
 import { useMessages } from '@/hooks/useMessages';
 import { useAuth } from '@/hooks/useAuth';
 import MessageBubble from './MessageBubble';
@@ -18,8 +18,8 @@ function extractOrderNumber(content: string): string | null {
   return match ? match[1] : null;
 }
 
-export default function MessageList({ conversationId }: Props) {
-  const { messages, loading, markAsRead } = useMessages(conversationId);
+function MessageListComponent({ conversationId }: Props) {
+  const { messages, loading, markMessagesAsRead } = useMessages(conversationId);
   const { profile } = useAuth();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -28,21 +28,50 @@ export default function MessageList({ conversationId }: Props) {
   // Auto-scroll vers le bas
   useEffect(() => {
     if (messages.length > prevMessageCount.current) {
-      messagesEndRef.current?.scrollIntoView({ behavior: messages.length - prevMessageCount.current > 1 ? 'auto' : 'smooth' });
+      messagesEndRef.current?.scrollIntoView({ 
+        behavior: messages.length - prevMessageCount.current > 1 ? 'auto' : 'smooth' 
+      });
     }
     prevMessageCount.current = messages.length;
   }, [messages.length]);
 
-  // Marquer les messages reçus comme lus
+  // Marquer les messages reçus comme lus en UNE SEULE requête groupée (Batch)
   const markUnreadMessages = useCallback(() => {
     if (!profile?.id) return;
-    const unread = messages.filter(m => !m.read_at && m.sender_id !== profile.id);
-    unread.forEach(m => markAsRead(m.id));
-  }, [messages, profile?.id, markAsRead]);
+    const unreadIds = messages
+      .filter(m => !m.read_at && m.sender_id !== profile.id)
+      .map(m => m.id);
+
+    if (unreadIds.length > 0) {
+      markMessagesAsRead(unreadIds);
+    }
+  }, [messages, profile?.id, markMessagesAsRead]);
 
   useEffect(() => {
     markUnreadMessages();
   }, [markUnreadMessages]);
+
+  // Grouper les messages par date avec useMemo pour éviter le recalcul à chaque render
+  const groupedMessages = useMemo(() => {
+    const groups: { date: string; messages: Message[] }[] = [];
+    let currentDate = '';
+
+    messages.forEach(msg => {
+      const msgDate = new Date(msg.created_at).toLocaleDateString('fr-FR', {
+        weekday: 'long',
+        day: 'numeric',
+        month: 'long',
+      });
+      if (msgDate !== currentDate) {
+        currentDate = msgDate;
+        groups.push({ date: msgDate, messages: [msg] });
+      } else {
+        groups[groups.length - 1].messages.push(msg);
+      }
+    });
+
+    return groups;
+  }, [messages]);
 
   if (loading && messages.length === 0) {
     return (
@@ -71,31 +100,13 @@ export default function MessageList({ conversationId }: Props) {
     );
   }
 
-  // Grouper les messages par date
-  const groupedMessages: { date: string; messages: Message[] }[] = [];
-  let currentDate = '';
-
-  messages.forEach(msg => {
-    const msgDate = new Date(msg.created_at).toLocaleDateString('fr-FR', {
-      weekday: 'long',
-      day: 'numeric',
-      month: 'long',
-    });
-    if (msgDate !== currentDate) {
-      currentDate = msgDate;
-      groupedMessages.push({ date: msgDate, messages: [msg] });
-    } else {
-      groupedMessages[groupedMessages.length - 1].messages.push(msg);
-    }
-  });
-
   return (
-    <div ref={containerRef} className="flex-1 overflow-y-auto p-4 space-y-4 bg-[#f8fafc] scrollbar-thin">
+    <div ref={containerRef} className="flex-1 overflow-y-auto p-3.5 sm:p-4 space-y-4 bg-[#f8fafc] scrollbar-thin overscroll-contain">
       {groupedMessages.map((group) => (
         <div key={group.date} className="space-y-2.5">
           {/* Séparateur de date */}
           <div className="flex items-center justify-center my-3">
-            <span className="bg-white/90 backdrop-blur-xs text-gray-500 text-[11px] font-medium px-3 py-0.5 rounded-full border border-gray-200/70 shadow-2xs capitalize tracking-wide">
+            <span className="bg-white/95 text-gray-500 text-[11px] font-medium px-3 py-0.5 rounded-full border border-gray-200/70 shadow-2xs capitalize tracking-wide">
               {group.date}
             </span>
           </div>
@@ -129,3 +140,5 @@ export default function MessageList({ conversationId }: Props) {
     </div>
   );
 }
+
+export default memo(MessageListComponent);

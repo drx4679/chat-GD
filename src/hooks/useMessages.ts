@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/lib/supabase-browser';
 import type { Message } from '@/types/database';
 import { useAuth } from './useAuth';
@@ -10,6 +10,7 @@ interface UseMessagesReturn {
   loading: boolean;
   sendMessage: (content: string) => Promise<void>;
   markAsRead: (messageId: string) => Promise<void>;
+  markMessagesAsRead: (messageIds: string[]) => Promise<void>;
 }
 
 export function useMessages(conversationId: string): UseMessagesReturn {
@@ -20,55 +21,54 @@ export function useMessages(conversationId: string): UseMessagesReturn {
   useEffect(() => {
     if (!conversationId) return;
 
+    let isMounted = true;
+
     const fetchMessages = async () => {
-      setLoading(true);
       const { data, error } = await supabase
         .from('messages')
         .select('*')
         .eq('conversation_id', conversationId)
         .order('created_at', { ascending: true });
 
-      if (!error && data) {
-        setMessages(data as Message[]);
+      if (isMounted) {
+        if (!error && data) {
+          setMessages(data as Message[]);
+        }
+        setLoading(false);
       }
-      setLoading(false);
     };
 
     fetchMessages();
 
-    // S'abonner aux nouveaux messages avec nom unique (évite conflit React Strict Mode)
-    const channelName = `msg_${conversationId}_${Date.now()}`;
-    
-    try {
-      const channel = supabase
-        .channel(channelName)
-        .on(
-          'postgres_changes',
-          { event: 'INSERT', schema: 'public', table: 'messages', filter: `conversation_id=eq.${conversationId}` },
-          (payload) => {
-            const newMsg = payload.new as Message;
-            // Éviter les doublons (message optimiste déjà affiché)
+    // S'abonner aux nouveaux messages
+    const channelName = `msg_${conversationId}`;
+    const channel = supabase
+      .channel(channelName)
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'messages', filter: `conversation_id=eq.${conversationId}` },
+        (payload) => {
+          const newMsg = payload.new as Message;
+          if (isMounted) {
             setMessages(prev => {
               if (prev.some(m => m.id === newMsg.id)) return prev;
               return [...prev, newMsg];
             });
           }
-        )
-        .subscribe();
+        }
+      )
+      .subscribe();
 
-      return () => {
-        supabase.removeChannel(channel);
-      };
-    } catch (err) {
-      console.warn('Erreur subscription messages:', err);
-      return () => {};
-    }
+    return () => {
+      isMounted = false;
+      supabase.removeChannel(channel);
+    };
   }, [conversationId]);
 
-  const sendMessage = async (content: string) => {
+  const sendMessage = useCallback(async (content: string) => {
     if (!user || !conversationId) return;
 
-    // Ajouter le message localement immédiatement (optimistic update)
+    // Optimistic update immédiat
     const tempId = crypto.randomUUID();
     const optimisticMessage: Message = {
       id: tempId,
@@ -80,7 +80,6 @@ export function useMessages(conversationId: string): UseMessagesReturn {
     };
     setMessages(prev => [...prev, optimisticMessage]);
 
-    // Insérer dans la base de données
     const { data, error } = await supabase
       .from('messages')
       .insert({
@@ -92,21 +91,27 @@ export function useMessages(conversationId: string): UseMessagesReturn {
       .single();
 
     if (error) {
-      // En cas d'erreur, retirer le message optimiste
       setMessages(prev => prev.filter(m => m.id !== tempId));
       console.error('Erreur envoi message :', error);
     } else if (data) {
-      // Remplacer le message optimiste par le vrai (avec l'id serveur)
       setMessages(prev => prev.map(m => m.id === tempId ? data as Message : m));
     }
-  };
+  }, [user, conversationId]);
 
-  const markAsRead = async (messageId: string) => {
+  const markAsRead = useCallback(async (messageId: string) => {
     await supabase
       .from('messages')
       .update({ read_at: new Date().toISOString() })
       .eq('id', messageId);
-  };
+  }, []);
 
-  return { messages, loading, sendMessage, markAsRead };
+  const markMessagesAsRead = useCallback(async (messageIds: string[]) => {
+    if (!messageIds || messageIds.length === 0) return;
+    await supabase
+      .from('messages')
+      .update({ read_at: new Date().toISOString() })
+      .in('id', messageIds);
+  }, []);
+
+  return { messages, loading, sendMessage, markAsRead, markMessagesAsRead };
 }
