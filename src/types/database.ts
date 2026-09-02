@@ -207,4 +207,7 @@ export interface Order {
   shipped_at: string | null;
   delivered_at: string | null;
   shipping_company: string | null;
+  is_processing: boolean;
+  is_shipped: boolean;
+  is_delivered: boolean;
 }

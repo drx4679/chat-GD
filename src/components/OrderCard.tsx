@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import type { Order, OrderStatus } from '@/types/database';
 import { supabaseOrders } from '@/lib/supabase-orders';
+import DeliveryTracker from './DeliveryTracker';
 
 interface OrderCardProps {
   orderNumber: string;
@@ -242,6 +243,12 @@ export default function OrderCard({ orderNumber, isOwn }: OrderCardProps) {
               )}
             </div>
           )}
+
+          {/* Suivi de livraison */}
+          <DeliveryTracker 
+            order={order} 
+            onUpdate={(updates) => setOrder(prev => prev ? { ...prev, ...updates } : null)} 
+          />
         </div>
       </div>
     </div>
