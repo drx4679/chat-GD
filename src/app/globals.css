@@ -5,18 +5,9 @@
 
 /* Styles de base pour l'application de chat */
 @layer base {
-  html, body {
-    height: 100%;
-    overscroll-behavior-y: none;
-    -webkit-tap-highlight-color: transparent;
-  }
-  
   body {
     @apply bg-gray-50 text-gray-900 antialiased selection:bg-indigo-500 selection:text-white;
     font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-    transform: translateZ(0);
   }
 }
 
@@ -25,11 +16,10 @@
   .scrollbar-thin {
     scrollbar-width: thin;
     scrollbar-color: rgba(203, 213, 225, 0.6) transparent;
-    -webkit-overflow-scrolling: touch;
   }
   .scrollbar-thin::-webkit-scrollbar {
-    width: 4px;
-    height: 4px;
+    width: 5px;
+    height: 5px;
   }
   .scrollbar-thin::-webkit-scrollbar-track {
     background: transparent;
@@ -50,13 +40,13 @@
   }
 }
 
-/* Animations légères et optimisées GPU */
+/* Animations */
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(4px); }
+  from { opacity: 0; transform: translateY(6px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
 @keyframes popIn {
-  0% { opacity: 0; transform: scale(0.96); }
+  0% { opacity: 0; transform: scale(0.95); }
   100% { opacity: 1; transform: scale(1); }
 }

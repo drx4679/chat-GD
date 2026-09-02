@@ -1,4 +1,6 @@
-import { useState, useEffect, memo } from 'react';
+'use client';
+
+import { useState, useEffect } from 'react';
 import type { Order, OrderStatus } from '@/types/database';
 import { supabaseOrders } from '@/lib/supabase-orders';
 import DeliveryTracker from './DeliveryTracker';
@@ -37,7 +39,7 @@ function formatDate(dateStr: string | null): string {
   });
 }
 
-function OrderCardComponent({ orderNumber, isOwn }: OrderCardProps) {
+export default function OrderCard({ orderNumber, isOwn }: OrderCardProps) {
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState(false);
@@ -262,5 +264,3 @@ function OrderCardComponent({ orderNumber, isOwn }: OrderCardProps) {
     </div>
   );
 }
-
-export default memo(OrderCardComponent);

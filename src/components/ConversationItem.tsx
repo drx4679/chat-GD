@@ -1,4 +1,6 @@
-import { memo } from 'react';
+'use client';
+
+// Élément individuel dans la liste des conversations
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { ConversationWithDetails, Profile } from '@/types/database';
@@ -9,7 +11,7 @@ interface ConversationItemProps {
   currentUserId: string;
 }
 
-function ConversationItemComponent({ conversation, currentUserId }: ConversationItemProps) {
+export default function ConversationItem({ conversation, currentUserId }: ConversationItemProps) {
   const pathname = usePathname();
   const isActive = pathname === `/chat/${conversation.id}`;
   
@@ -114,8 +116,6 @@ function ConversationItemComponent({ conversation, currentUserId }: Conversation
     </Link>
   );
 }
-
-export default memo(ConversationItemComponent);
 
 function formatTime(dateStr: string): string {
   const date = new Date(dateStr);
