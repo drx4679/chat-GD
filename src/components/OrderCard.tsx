@@ -134,7 +134,9 @@ export default function OrderCard({ orderNumber, isOwn }: OrderCardProps) {
         {/* Header */}
         <div className="bg-gradient-to-r from-indigo-500 to-purple-500 px-4 py-2.5 flex items-center justify-between">
           <div className="flex items-center space-x-2">
-            <span className="text-lg">📦</span>
+            <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 text-white opacity-90" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+            </svg>
             <span className="text-white font-semibold text-sm">{order.order_number}</span>
           </div>
           {(() => {
@@ -164,7 +166,9 @@ export default function OrderCard({ orderNumber, isOwn }: OrderCardProps) {
         <div className="p-4 space-y-2">
           {/* Client */}
           <div className="flex items-start space-x-2">
-            <span className="text-gray-400 text-sm">👤</span>
+            <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 text-gray-400 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+            </svg>
             <div className="text-sm">
               <p className="font-medium text-gray-900">{order.customer_name || 'Client'}</p>
               <p className="text-gray-500">{order.customer_phone}</p>

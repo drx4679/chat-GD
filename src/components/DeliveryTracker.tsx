@@ -111,11 +111,7 @@ export default function DeliveryTracker({ order, onUpdate }: Props) {
 
     if (error) {
       console.error('DeliveryTracker error:', error);
-      alert(`Erreur: ${error.message}`);
-    } else if (!data || data.length === 0) {
-      console.error('DeliveryTracker: aucune ligne mise à jour');
-      alert('Erreur: la commande n\'a pas été trouvée dans la base');
-    } else {
+    } else if (data && data.length > 0) {
       onUpdate(updates);
     }
 
