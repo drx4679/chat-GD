@@ -60,6 +60,23 @@ export default function OrderCard({ orderNumber, isOwn }: OrderCardProps) {
     };
 
     fetchOrder();
+
+    // Realtime : écouter les mises à jour de cette commande
+    const channelName = `order_${orderNumber}_${Date.now()}`;
+    const channel = supabaseOrders
+      .channel(channelName)
+      .on(
+        'postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'orders', filter: `order_number=eq.${orderNumber}` },
+        (payload) => {
+          setOrder(payload.new as Order);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabaseOrders.removeChannel(channel);
+    };
   }, [orderNumber]);
 
   const handleStatusChange = async (newStatus: OrderStatus) => {

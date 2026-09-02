@@ -103,8 +103,7 @@ export function useConversations(): UseConversationsReturn {
 
     fetchConversations();
 
-    // S'abonner aux nouveaux messages pour rafraîchir la liste
-    // Nom unique avec timestamp pour éviter les conflits React 18 Strict Mode
+    // S'abonner aux changements pour rafraîchir la liste en temps réel
     const channelName = `conv_${user.id}_${Date.now()}`;
     
     try {
@@ -113,6 +112,16 @@ export function useConversations(): UseConversationsReturn {
         .on(
           'postgres_changes',
           { event: 'INSERT', schema: 'public', table: 'messages' },
+          () => { fetchConversations(); }
+        )
+        .on(
+          'postgres_changes',
+          { event: 'INSERT', schema: 'public', table: 'conversation_participants' },
+          () => { fetchConversations(); }
+        )
+        .on(
+          'postgres_changes',
+          { event: 'UPDATE', schema: 'public', table: 'conversations' },
           () => { fetchConversations(); }
         )
         .subscribe();
