@@ -16,7 +16,7 @@ export default function ConversationPage() {
   const conversationId = params.conversationId as string;
   const router = useRouter();
   const { conversations, loading: convsLoading } = useConversations();
-  const { profile } = useAuth();
+  const { profile, loading: authLoading } = useAuth();
   const { onlineUsers } = usePresence(conversationId);
   const { sendMessage } = useMessages(conversationId);
 
@@ -24,7 +24,7 @@ export default function ConversationPage() {
   const isOrderConversation = !!conversation?.contact_name;
   const otherParticipant = conversation?.participants.find(p => p.id !== profile?.id) as Profile;
 
-  if (convsLoading) {
+  if (convsLoading || authLoading) {
     return (
       <div className="flex-1 flex items-center justify-center bg-gray-50">
         <div className="w-8 h-8 border-4 border-indigo-200 border-t-indigo-500 rounded-full animate-spin"></div>

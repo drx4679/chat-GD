@@ -12,7 +12,7 @@ interface UseConversationsReturn {
 }
 
 export function useConversations(): UseConversationsReturn {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const [conversations, setConversations] = useState<ConversationWithDetails[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -95,6 +95,11 @@ export function useConversations(): UseConversationsReturn {
   }, [user]);
 
   useEffect(() => {
+    if (authLoading) {
+      setLoading(true);
+      return;
+    }
+
     if (!user) {
       setConversations([]);
       setLoading(false);
@@ -137,7 +142,7 @@ export function useConversations(): UseConversationsReturn {
       console.warn('Erreur subscription Realtime:', err);
       return () => { clearInterval(interval); };
     }
-  }, [user, fetchConversations]);
+  }, [user, authLoading, fetchConversations]);
 
   const createConversation = async (otherUserId: string): Promise<string> => {
     if (!user) throw new Error('Non authentifié');
