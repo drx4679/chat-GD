@@ -77,33 +77,38 @@ export default function NewConversationModal({ isOpen, onClose }: Props) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
-      <div className="bg-white rounded-xl shadow-xl w-full max-w-md max-h-[80vh] flex flex-col">
-        <div className="p-4 border-b border-gray-100 flex justify-between items-center">
-          <h2 className="text-lg font-semibold text-gray-900">Nouvelle conversation</h2>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4 animate-[fadeIn_0.15s_ease-out]">
+      <div className="bg-white rounded-2xl shadow-xl border border-gray-100 w-full max-w-md max-h-[80vh] flex flex-col animate-[popIn_0.15s_ease-out]">
+        <div className="px-5 py-4 border-b border-gray-100 flex justify-between items-center">
+          <h2 className="text-base font-semibold text-gray-900 tracking-tight">Nouvelle discussion</h2>
+          <button onClick={onClose} className="p-1 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
         </div>
         
-        <div className="p-4">
+        <div className="p-4 pb-2">
           <input
             type="text"
             placeholder="Rechercher un utilisateur..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            className="w-full px-3.5 py-2.5 bg-gray-50/80 border border-gray-200/80 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-100 focus:border-indigo-500 text-sm transition-all placeholder:text-gray-400"
             autoFocus
           />
         </div>
 
-        <div className="flex-1 overflow-y-auto p-2">
-          {searching && <p className="text-center text-sm text-gray-500 py-4">Recherche...</p>}
+        <div className="flex-1 overflow-y-auto p-3 space-y-1 scrollbar-thin">
+          {searching && (
+            <div className="flex items-center justify-center py-6 space-x-2">
+              <div className="w-5 h-5 border-2 border-indigo-200 border-t-indigo-600 rounded-full animate-spin"></div>
+              <span className="text-xs text-gray-400 font-medium">Recherche...</span>
+            </div>
+          )}
           
           {!searching && results.length === 0 && (
-            <p className="text-center text-sm text-gray-500 py-4">
+            <p className="text-center text-xs text-gray-400 py-6">
               {search ? 'Aucun utilisateur trouvé.' : 'Aucun autre utilisateur inscrit.'}
             </p>
           )}
@@ -112,11 +117,11 @@ export default function NewConversationModal({ isOpen, onClose }: Props) {
             <div 
               key={u.id} 
               onClick={() => handleCreate(u.id)}
-              className={`flex items-center p-3 hover:bg-gray-50 rounded-lg cursor-pointer transition-colors ${creating ? 'opacity-50 pointer-events-none' : ''}`}
+              className={`flex items-center p-2.5 hover:bg-indigo-50/60 rounded-xl cursor-pointer transition-colors ${creating ? 'opacity-50 pointer-events-none' : ''}`}
             >
               <UserAvatar username={u.username} avatarUrl={u.avatar_url} />
               <div className="ml-3">
-                <span className="font-medium text-gray-900">{u.username}</span>
+                <span className="text-sm font-semibold text-gray-800">{u.username}</span>
               </div>
             </div>
           ))}

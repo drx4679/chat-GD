@@ -119,16 +119,19 @@ export default function DeliveryTracker({ order, onUpdate }: Props) {
   };
 
   return (
-    <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-4 mt-1">
-      <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-4">
-        Suivi de livraison
-      </h4>
+    <div className="bg-gradient-to-b from-slate-50/90 to-gray-50/80 border border-gray-100 rounded-xl p-3.5 mt-2">
+      <div className="flex items-center justify-between mb-3.5">
+        <h4 className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider">
+          Suivi de livraison
+        </h4>
+        <span className="text-[10px] text-gray-400 font-medium">Cliquez pour actualiser</span>
+      </div>
 
       {/* Barre de progression */}
-      <div className="relative mb-4">
-        <div className="absolute top-[18px] left-6 right-6 h-0.5 bg-gray-200 rounded-full">
+      <div className="relative mb-3.5 px-1">
+        <div className="absolute top-[17px] left-6 right-6 h-0.5 bg-gray-200/80 rounded-full">
           <div 
-            className="h-full bg-gradient-to-r from-green-400 to-green-500 rounded-full transition-all duration-500"
+            className="h-full bg-emerald-500 rounded-full transition-all duration-300"
             style={{ width: `${Math.max(0, (activeStep / 3) * 100)}%` }}
           />
         </div>
@@ -144,18 +147,19 @@ export default function DeliveryTracker({ order, onUpdate }: Props) {
                 <button
                   onClick={() => handleToggle(idx)}
                   disabled={updating !== null}
-                  className={`w-9 h-9 rounded-full flex items-center justify-center transition-all duration-300 ${
+                  className={`w-8 h-8 rounded-full flex items-center justify-center transition-all duration-200 active:scale-95 ${
                     isActive
-                      ? 'bg-green-500 text-white shadow-md'
-                      : 'bg-white border-2 border-gray-300 text-gray-400 hover:border-green-400 hover:text-green-500'
-                  } ${isCurrent ? 'ring-2 ring-green-200 ring-offset-1' : ''} ${
+                      ? 'bg-emerald-600 text-white shadow-xs ring-2 ring-emerald-100'
+                      : 'bg-white border border-gray-200 text-gray-400 hover:border-emerald-400 hover:text-emerald-600 shadow-2xs'
+                  } ${isCurrent ? 'ring-3 ring-emerald-300/60 ring-offset-1' : ''} ${
                     updating === step.key ? 'animate-pulse' : ''
                   }`}
+                  title={step.label}
                 >
                   <StepIcon />
                 </button>
-                <span className={`text-[10px] mt-1.5 font-medium ${
-                  isActive ? 'text-green-600' : 'text-gray-400'
+                <span className={`text-[10px] mt-1.5 font-medium tracking-tight ${
+                  isActive ? 'text-emerald-700 font-semibold' : 'text-gray-400'
                 }`}>
                   {step.label}
                 </span>
@@ -166,19 +170,21 @@ export default function DeliveryTracker({ order, onUpdate }: Props) {
       </div>
 
       {/* Statut texte */}
-      <div className="text-center">
-        <span className={`text-xs font-medium px-3 py-1 rounded-full ${
-          order.is_delivered ? 'bg-green-100 text-green-700' :
-          order.is_shipped ? 'bg-purple-100 text-purple-700' :
-          order.is_processing ? 'bg-blue-100 text-blue-700' :
-          order.status !== 'pending' ? 'bg-green-100 text-green-700' :
-          'bg-gray-100 text-gray-600'
+      <div className="text-center pt-1">
+        <span className={`inline-flex items-center space-x-1 text-[11px] font-semibold px-3 py-1 rounded-full border ${
+          order.is_delivered ? 'bg-emerald-50 text-emerald-700 border-emerald-200/60' :
+          order.is_shipped ? 'bg-purple-50 text-purple-700 border-purple-200/60' :
+          order.is_processing ? 'bg-indigo-50 text-indigo-700 border-indigo-200/60' :
+          order.status !== 'pending' ? 'bg-emerald-50 text-emerald-700 border-emerald-200/60' :
+          'bg-gray-100/90 text-gray-600 border-gray-200/60'
         }`}>
-          {order.is_delivered ? 'Livré au client' :
-           order.is_shipped ? 'En cours de livraison' :
-           order.is_processing ? 'En préparation' :
-           order.status !== 'pending' ? 'Commande validée' :
-           'En attente de validation'}
+          <span>
+            {order.is_delivered ? 'Livré au client' :
+             order.is_shipped ? 'En cours de livraison' :
+             order.is_processing ? 'En préparation' :
+             order.status !== 'pending' ? 'Commande validée' :
+             'En attente de validation'}
+          </span>
         </span>
       </div>
     </div>

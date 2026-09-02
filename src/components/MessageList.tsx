@@ -46,10 +46,10 @@ export default function MessageList({ conversationId }: Props) {
 
   if (loading && messages.length === 0) {
     return (
-      <div className="flex-1 flex items-center justify-center bg-gray-50">
+      <div className="flex-1 flex items-center justify-center bg-[#f8fafc]">
         <div className="flex flex-col items-center space-y-2">
-          <div className="w-8 h-8 border-4 border-indigo-200 border-t-indigo-500 rounded-full animate-spin"></div>
-          <span className="text-sm text-gray-400">Chargement des messages...</span>
+          <div className="w-7 h-7 border-2 border-indigo-200 border-t-indigo-600 rounded-full animate-spin"></div>
+          <span className="text-xs text-gray-400 font-medium">Chargement des messages...</span>
         </div>
       </div>
     );
@@ -57,10 +57,15 @@ export default function MessageList({ conversationId }: Props) {
 
   if (messages.length === 0) {
     return (
-      <div className="flex-1 flex items-center justify-center bg-gray-50">
-        <div className="text-center">
-          <div className="text-4xl mb-2">💬</div>
-          <p className="text-gray-400 text-sm">Commencez la conversation !</p>
+      <div className="flex-1 flex items-center justify-center bg-[#f8fafc]">
+        <div className="text-center p-6">
+          <div className="w-12 h-12 rounded-2xl bg-white border border-gray-100 shadow-xs flex items-center justify-center text-gray-400 mx-auto mb-3">
+            <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+            </svg>
+          </div>
+          <p className="text-sm font-medium text-gray-600">Aucun message pour l'instant</p>
+          <p className="text-xs text-gray-400 mt-0.5">Envoyez le premier message pour démarrer</p>
         </div>
       </div>
     );
@@ -85,12 +90,12 @@ export default function MessageList({ conversationId }: Props) {
   });
 
   return (
-    <div ref={containerRef} className="flex-1 overflow-y-auto p-4 space-y-3 bg-gray-50">
+    <div ref={containerRef} className="flex-1 overflow-y-auto p-4 space-y-4 bg-[#f8fafc] scrollbar-thin">
       {groupedMessages.map((group) => (
-        <div key={group.date}>
+        <div key={group.date} className="space-y-2.5">
           {/* Séparateur de date */}
           <div className="flex items-center justify-center my-3">
-            <span className="bg-gray-200 text-gray-500 text-xs px-3 py-1 rounded-full capitalize">
+            <span className="bg-white/90 backdrop-blur-xs text-gray-500 text-[11px] font-medium px-3 py-0.5 rounded-full border border-gray-200/70 shadow-2xs capitalize tracking-wide">
               {group.date}
             </span>
           </div>

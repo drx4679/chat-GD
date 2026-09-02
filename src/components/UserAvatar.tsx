@@ -19,8 +19,15 @@ export default function UserAvatar({ username, avatarUrl, size = 'md', online }:
     }
     return hash;
   };
-  const colors = ['bg-red-500', 'bg-yellow-500', 'bg-green-500', 'bg-blue-500', 'bg-indigo-500', 'bg-purple-500', 'bg-pink-500'];
-  const colorClass = colors[Math.abs(hashCode(username)) % colors.length];
+  const gradients = [
+    'bg-gradient-to-tr from-indigo-500 to-indigo-600',
+    'bg-gradient-to-tr from-sky-500 to-blue-600',
+    'bg-gradient-to-tr from-emerald-500 to-teal-600',
+    'bg-gradient-to-tr from-violet-500 to-purple-600',
+    'bg-gradient-to-tr from-rose-500 to-pink-600',
+    'bg-gradient-to-tr from-amber-500 to-orange-600',
+  ];
+  const gradientClass = gradients[Math.abs(hashCode(username)) % gradients.length];
 
   const sizeClasses = {
     sm: 'w-8 h-8 text-xs',
@@ -34,16 +41,16 @@ export default function UserAvatar({ username, avatarUrl, size = 'md', online }:
         <img
           src={avatarUrl}
           alt={username}
-          className={`${sizeClasses[size]} rounded-full object-cover`}
+          className={`${sizeClasses[size]} rounded-full object-cover ring-2 ring-white shadow-xs`}
         />
       ) : (
-        <div className={`${sizeClasses[size]} ${colorClass} rounded-full flex items-center justify-center text-white font-bold uppercase`}>
+        <div className={`${sizeClasses[size]} ${gradientClass} rounded-full flex items-center justify-center text-white font-semibold uppercase ring-2 ring-white shadow-xs`}>
           {username.charAt(0)}
         </div>
       )}
       
       {online && (
-        <span className="absolute bottom-0 right-0 block h-2.5 w-2.5 rounded-full bg-green-500 ring-2 ring-white" />
+        <span className="absolute bottom-0 right-0 block h-2.5 w-2.5 rounded-full bg-emerald-500 ring-2 ring-white" />
       )}
     </div>
   );
