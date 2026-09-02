@@ -85,7 +85,14 @@ self.addEventListener('push', (event) => {
   };
 
   event.waitUntil(
-    self.registration.showNotification(data.title, options)
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clients) => {
+      // Si l'app est ouverte et visible, ne pas afficher la notification push
+      // (la notification navigateur via Realtime s'en charge)
+      const isVisible = clients.some((client) => client.visibilityState === 'visible');
+      if (isVisible) return;
+
+      return self.registration.showNotification(data.title, options);
+    })
   );
 });
 

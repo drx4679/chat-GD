@@ -52,6 +52,15 @@ export function useMessages(conversationId: string): UseMessagesReturn {
               if (prev.some(m => m.id === newMsg.id)) return prev;
               return [...prev, newMsg];
             });
+
+            // Notification navigateur si message d'un autre utilisateur
+            if (newMsg.sender_id !== user?.id && Notification.permission === 'granted') {
+              new Notification('Nouveau message', {
+                body: newMsg.content.length > 100 ? newMsg.content.slice(0, 97) + '...' : newMsg.content,
+                icon: '/icons/icon.svg',
+                tag: `msg-${newMsg.id}`,
+              });
+            }
           }
         )
         .subscribe();
