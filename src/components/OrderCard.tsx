@@ -46,7 +46,6 @@ export default function OrderCard({ orderNumber, isOwn }: OrderCardProps) {
 
   useEffect(() => {
     const fetchOrder = async () => {
-      setLoading(true);
       const { data, error } = await supabaseOrders
         .from('orders')
         .select('*')
@@ -59,23 +58,31 @@ export default function OrderCard({ orderNumber, isOwn }: OrderCardProps) {
       setLoading(false);
     };
 
+    setLoading(true);
     fetchOrder();
 
-    // Realtime : écouter les mises à jour de cette commande
+    // Polling toutes les 10 secondes pour les mises à jour
+    const interval = setInterval(fetchOrder, 10000);
+
+    // Realtime en bonus (si activé sur la 2e base)
     const channelName = `order_${orderNumber}_${Date.now()}`;
-    const channel = supabaseOrders
-      .channel(channelName)
-      .on(
-        'postgres_changes',
-        { event: 'UPDATE', schema: 'public', table: 'orders', filter: `order_number=eq.${orderNumber}` },
-        (payload) => {
-          setOrder(payload.new as Order);
-        }
-      )
-      .subscribe();
+    let channel: any;
+    try {
+      channel = supabaseOrders
+        .channel(channelName)
+        .on(
+          'postgres_changes',
+          { event: 'UPDATE', schema: 'public', table: 'orders', filter: `order_number=eq.${orderNumber}` },
+          (payload) => {
+            setOrder(payload.new as Order);
+          }
+        )
+        .subscribe();
+    } catch {}
 
     return () => {
-      supabaseOrders.removeChannel(channel);
+      clearInterval(interval);
+      if (channel) supabaseOrders.removeChannel(channel);
     };
   }, [orderNumber]);
 

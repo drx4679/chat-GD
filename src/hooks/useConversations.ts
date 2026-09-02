@@ -103,6 +103,9 @@ export function useConversations(): UseConversationsReturn {
 
     fetchConversations();
 
+    // Polling toutes les 10 secondes
+    const interval = setInterval(fetchConversations, 10000);
+
     // S'abonner aux changements pour rafraîchir la liste en temps réel
     const channelName = `conv_${user.id}_${Date.now()}`;
     
@@ -127,11 +130,12 @@ export function useConversations(): UseConversationsReturn {
         .subscribe();
 
       return () => {
+        clearInterval(interval);
         supabase.removeChannel(channel);
       };
     } catch (err) {
       console.warn('Erreur subscription Realtime:', err);
-      return () => {};
+      return () => { clearInterval(interval); };
     }
   }, [user, fetchConversations]);
 
