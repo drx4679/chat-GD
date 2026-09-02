@@ -167,3 +167,35 @@ export interface ConversationWithDetails extends Conversation {
   last_message: Message | null;
   unread_count: number;
 }
+
+// Types pour la 2e base Supabase (Orders)
+export type OrderStatus = 'pending' | 'confirmed' | 'paid' | 'processing' | 'shipped' | 'delivered' | 'cancelled' | 'refunded';
+export type PaymentStatus = 'pending' | 'paid' | 'failed' | 'refunded' | 'cancelled' | 'cashpay';
+
+export interface Order {
+  id: number;
+  order_number: string;
+  customer_name: string | null;
+  customer_phone: string;
+  customer_email: string | null;
+  delivery_address: string;
+  delivery_city: string;
+  delivery_country: string | null;
+  delivery_instructions: string | null;
+  total_amount: number;
+  delivery_fee: number | null;
+  discount_amount: number | null;
+  final_amount: number;
+  currency: string | null;
+  status: OrderStatus;
+  payment_method: string | null;
+  payment_status: PaymentStatus;
+  notes: string | null;
+  admin_notes: string | null;
+  items: any[] | null;
+  created_at: string | null;
+  updated_at: string | null;
+  shipped_at: string | null;
+  delivered_at: string | null;
+  shipping_company: string | null;
+}

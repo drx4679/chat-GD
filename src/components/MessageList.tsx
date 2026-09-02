@@ -1,14 +1,21 @@
 'use client';
 
-// Liste des messages avec auto-scroll et marquage des messages lus
+// Liste des messages avec support des commandes
 import { useEffect, useRef, useCallback } from 'react';
 import { useMessages } from '@/hooks/useMessages';
 import { useAuth } from '@/hooks/useAuth';
 import MessageBubble from './MessageBubble';
+import OrderCard from './OrderCard';
 import { Message } from '@/types/database';
 
 interface Props {
   conversationId: string;
+}
+
+// Détecte si un message est une commande : [ORDER:CMD-xxxx]
+function extractOrderNumber(content: string): string | null {
+  const match = content.match(/\[ORDER:([^\]]+)\]/);
+  return match ? match[1] : null;
 }
 
 export default function MessageList({ conversationId }: Props) {
@@ -18,7 +25,7 @@ export default function MessageList({ conversationId }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const prevMessageCount = useRef(0);
 
-  // Auto-scroll vers le bas quand de nouveaux messages arrivent
+  // Auto-scroll vers le bas
   useEffect(() => {
     if (messages.length > prevMessageCount.current) {
       messagesEndRef.current?.scrollIntoView({ behavior: messages.length - prevMessageCount.current > 1 ? 'auto' : 'smooth' });
@@ -89,13 +96,27 @@ export default function MessageList({ conversationId }: Props) {
           </div>
           {/* Messages du jour */}
           <div className="space-y-2">
-            {group.messages.map((message: Message) => (
-              <MessageBubble 
-                key={message.id} 
-                message={message} 
-                isOwn={message.sender_id === profile?.id} 
-              />
-            ))}
+            {group.messages.map((message: Message) => {
+              const orderNumber = extractOrderNumber(message.content);
+              
+              if (orderNumber) {
+                return (
+                  <OrderCard
+                    key={message.id}
+                    orderNumber={orderNumber}
+                    isOwn={message.sender_id === profile?.id}
+                  />
+                );
+              }
+
+              return (
+                <MessageBubble 
+                  key={message.id} 
+                  message={message} 
+                  isOwn={message.sender_id === profile?.id} 
+                />
+              );
+            })}
           </div>
         </div>
       ))}
