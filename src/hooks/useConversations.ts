@@ -51,6 +51,14 @@ export function useConversations(): UseConversationsReturn {
             .order('created_at', { ascending: false })
             .limit(1);
 
+          // Compter les messages non lus (envoyés par l'autre, pas encore lus)
+          const { count: unreadCount } = await supabase
+            .from('messages')
+            .select('*', { count: 'exact', head: true })
+            .eq('conversation_id', c.conversation_id)
+            .neq('sender_id', user!.id)
+            .is('read_at', null);
+
           return {
             id: c.conversation_id,
             created_at: c.created_at,
@@ -60,10 +68,10 @@ export function useConversations(): UseConversationsReturn {
               username: p.username,
               avatar_url: p.avatar_url,
               last_seen: p.last_seen,
-              created_at: p.last_seen, // fallback
+              created_at: p.last_seen,
             })) as Profile[],
             last_message: (lastMessages && lastMessages.length > 0 ? lastMessages[0] : null) as Message | null,
-            unread_count: 0,
+            unread_count: unreadCount || 0,
           };
         })
       );
