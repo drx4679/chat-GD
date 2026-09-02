@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabaseOrders } from '@/lib/supabase-orders';
 
 interface OrderCounts {
@@ -12,8 +12,8 @@ interface OrderCounts {
 export function useOrderCounts(): OrderCounts {
   const [counts, setCounts] = useState<OrderCounts>({ total: 0, confirmed: 0, pending: 0 });
 
-  useEffect(() => {
-    const fetchCounts = async () => {
+  const fetchCounts = useCallback(async () => {
+    try {
       // Total commandes
       const { count: total } = await supabaseOrders
         .from('orders')
@@ -32,16 +32,44 @@ export function useOrderCounts(): OrderCounts {
         .eq('status', 'pending');
 
       setCounts({
-        total: total || 0,
-        confirmed: confirmed || 0,
-        pending: pending || 0,
+        total: total ?? 0,
+        confirmed: confirmed ?? 0,
+        pending: pending ?? 0,
       });
-    };
-
-    fetchCounts();
-    const interval = setInterval(fetchCounts, 10000);
-    return () => clearInterval(interval);
+    } catch (err) {
+      console.warn('Erreur récupération compteurs commandes:', err);
+    }
   }, []);
+
+  useEffect(() => {
+    fetchCounts();
+
+    // Polling toutes les 5 secondes
+    const interval = setInterval(fetchCounts, 5000);
+
+    // Écoute Realtime sur la table orders
+    const channelName = `order_counts_${Date.now()}`;
+    let channel: any;
+    try {
+      channel = supabaseOrders
+        .channel(channelName)
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'orders' },
+          () => {
+            fetchCounts();
+          }
+        )
+        .subscribe();
+    } catch (e) {
+      console.warn('Erreur abonnement Realtime compteurs:', e);
+    }
+
+    return () => {
+      clearInterval(interval);
+      if (channel) supabaseOrders.removeChannel(channel);
+    };
+  }, [fetchCounts]);
 
   return counts;
 }

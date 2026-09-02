@@ -6,13 +6,12 @@ import { useAuth } from '@/hooks/useAuth';
 import ConversationList from '@/components/ConversationList';
 import NotificationPrompt from '@/components/NotificationPrompt';
 
-import { useOrderCounts } from '@/hooks/useOrderCounts';
+import OrderCounters from '@/components/OrderCounters';
 
 export default function ChatLayout({ children }: { children: React.ReactNode }) {
   const { user, loading, signOut } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
-  const orderCounts = useOrderCounts();
 
   useEffect(() => {
     if (!loading && !user) {
@@ -56,32 +55,7 @@ export default function ChatLayout({ children }: { children: React.ReactNode }) 
             </div>
 
             {/* Compteurs commandes en pilules modernes */}
-            <div className="flex items-center gap-1.5">
-              {/* Total */}
-              <div className="flex-1 flex items-center justify-center space-x-1.5 bg-gray-50 border border-gray-100/90 text-gray-600 px-2.5 py-1.5 rounded-lg text-xs font-medium" title="Total commandes">
-                <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-                </svg>
-                <span className="text-[11px] text-gray-500">Total</span>
-                <span className="font-semibold text-gray-800">{orderCounts.total}</span>
-              </div>
-              {/* Confirmées */}
-              <div className="flex-1 flex items-center justify-center space-x-1.5 bg-emerald-50/70 border border-emerald-100 text-emerald-700 px-2.5 py-1.5 rounded-lg text-xs font-medium" title="Commandes validées">
-                <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5 text-emerald-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                </svg>
-                <span className="text-[11px] text-emerald-600">Validées</span>
-                <span className="font-semibold">{orderCounts.confirmed}</span>
-              </div>
-              {/* En attente */}
-              <div className="flex-1 flex items-center justify-center space-x-1.5 bg-amber-50/70 border border-amber-100 text-amber-700 px-2.5 py-1.5 rounded-lg text-xs font-medium" title="Commandes en attente">
-                <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5 text-amber-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                <span className="text-[11px] text-amber-600">Attente</span>
-                <span className="font-semibold">{orderCounts.pending}</span>
-              </div>
-            </div>
+            <OrderCounters />
           </div>
           <div className="flex-1 overflow-hidden bg-white">
             <ConversationList />

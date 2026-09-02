@@ -9,6 +9,7 @@ import MessageList from '@/components/MessageList';
 import MessageInput from '@/components/MessageInput';
 import UserAvatar from '@/components/UserAvatar';
 import PresenceIndicator from '@/components/PresenceIndicator';
+import OrderCounters from '@/components/OrderCounters';
 import { Profile } from '@/types/database';
 
 export default function ConversationPage() {
@@ -98,18 +99,22 @@ export default function ConversationPage() {
           )}
         </div>
 
-        {/* Quick action for order conversations in header */}
-        {isOrderConversation && conversation.contact_phone && (
-          <a
-            href={`tel:${conversation.contact_phone}`}
-            className="hidden sm:flex items-center space-x-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200/80 px-3 py-1.5 rounded-lg text-xs font-medium transition-all"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5 text-emerald-600" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M6.62 10.79a15.053 15.053 0 006.59 6.59l2.2-2.2a1 1 0 011.01-.24c1.12.37 2.33.57 3.57.57a1 1 0 011 1V20a1 1 0 01-1 1A17 17 0 013 4a1 1 0 011-1h3.5a1 1 0 011 1c0 1.25.2 2.45.57 3.57a1 1 0 01-.24 1.01l-2.2 2.2z"/>
-            </svg>
-            <span>Appeler</span>
-          </a>
-        )}
+        <div className="flex items-center space-x-2 flex-shrink-0">
+          <OrderCounters compact />
+
+          {/* Quick action for order conversations in header */}
+          {isOrderConversation && conversation.contact_phone && (
+            <a
+              href={`tel:${conversation.contact_phone}`}
+              className="hidden sm:flex items-center space-x-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200/80 px-2.5 py-1 rounded-lg text-xs font-medium transition-all"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5 text-emerald-600" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M6.62 10.79a15.053 15.053 0 006.59 6.59l2.2-2.2a1 1 0 011.01-.24c1.12.37 2.33.57 3.57.57a1 1 0 011 1V20a1 1 0 01-1 1A17 17 0 013 4a1 1 0 011-1h3.5a1 1 0 011 1c0 1.25.2 2.45.57 3.57a1 1 0 01-.24 1.01l-2.2 2.2z"/>
+              </svg>
+              <span>Appeler</span>
+            </a>
+          )}
+        </div>
       </div>
 
       {/* Messages */}
