@@ -11,14 +11,14 @@ interface OrderCardProps {
 }
 
 const STATUS_CONFIG: Record<OrderStatus, { label: string; badgeLabel: string; color: string; bg: string }> = {
-  pending: { label: 'Confirmée', badgeLabel: 'En attente', color: 'text-yellow-700', bg: 'bg-yellow-100' },
-  confirmed: { label: 'En préparation', badgeLabel: 'Validée', color: 'text-green-700', bg: 'bg-green-100' },
-  paid: { label: 'En préparation', badgeLabel: 'Payée', color: 'text-green-700', bg: 'bg-green-100' },
-  processing: { label: 'Expédiée', badgeLabel: 'En préparation', color: 'text-indigo-700', bg: 'bg-indigo-100' },
-  shipped: { label: 'Livrée', badgeLabel: 'Expédiée', color: 'text-purple-700', bg: 'bg-purple-100' },
-  delivered: { label: 'Terminée', badgeLabel: 'Livrée', color: 'text-emerald-700', bg: 'bg-emerald-100' },
-  cancelled: { label: 'Annulée', badgeLabel: 'Annulée', color: 'text-red-700', bg: 'bg-red-100' },
-  refunded: { label: 'Remboursée', badgeLabel: 'Remboursée', color: 'text-gray-700', bg: 'bg-gray-100' },
+  pending: { label: 'Mettre en attente', badgeLabel: 'En attente', color: 'text-yellow-700', bg: 'bg-yellow-100' },
+  confirmed: { label: 'Confirmer', badgeLabel: 'Validée', color: 'text-green-700', bg: 'bg-green-100' },
+  paid: { label: 'Marquer payée', badgeLabel: 'Payée', color: 'text-green-700', bg: 'bg-green-100' },
+  processing: { label: 'Passer en préparation', badgeLabel: 'En préparation', color: 'text-indigo-700', bg: 'bg-indigo-100' },
+  shipped: { label: 'Expédier', badgeLabel: 'Expédiée', color: 'text-purple-700', bg: 'bg-purple-100' },
+  delivered: { label: 'Marquer livrée', badgeLabel: 'Livrée', color: 'text-emerald-700', bg: 'bg-emerald-100' },
+  cancelled: { label: 'Annuler', badgeLabel: 'Annulée', color: 'text-red-700', bg: 'bg-red-100' },
+  refunded: { label: 'Rembourser', badgeLabel: 'Remboursée', color: 'text-gray-700', bg: 'bg-gray-100' },
 };
 
 const STATUS_FLOW: OrderStatus[] = ['pending', 'confirmed', 'processing', 'shipped', 'delivered'];
@@ -233,9 +233,18 @@ export default function OrderCard({ orderNumber, isOwn }: OrderCardProps) {
               <button
                 onClick={() => handleStatusChange(nextStatus)}
                 disabled={updating}
-                className="flex-1 bg-indigo-500 text-white text-sm font-medium py-2 rounded-lg hover:bg-indigo-600 disabled:opacity-50 transition-colors"
+                className="flex-1 flex items-center justify-center space-x-2 bg-indigo-500 text-white text-sm font-medium py-2 rounded-lg hover:bg-indigo-600 disabled:opacity-50 transition-colors"
               >
-                {updating ? '...' : `→ ${STATUS_CONFIG[nextStatus].label}`}
+                {updating ? (
+                  <span>...</span>
+                ) : (
+                  <>
+                    <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                    </svg>
+                    <span>{STATUS_CONFIG[nextStatus].label}</span>
+                  </>
+                )}
               </button>
               {order.status !== 'cancelled' && (
                 <button
