@@ -47,56 +47,39 @@ export default async (req: Request, context: Context): Promise<Response> => {
       auth: { persistSession: false },
     });
 
-    // Chercher si une conversation existe déjà pour ce client (par téléphone)
-    let conversationId: string | null = null;
+    // Créer une nouvelle conversation pour chaque commande
+    let conversationId: string;
 
-    const { data: existingConv } = await chatSupabase
+    const { data: newConv, error: convError } = await chatSupabase
       .from('conversations')
+      .insert({
+        contact_name: `${customerName} — ${order.order_number}`,
+        contact_phone: customerPhone,
+        contact_email: customerEmail,
+        updated_at: new Date().toISOString(),
+      })
       .select('id')
-      .eq('contact_phone', customerPhone)
-      .limit(1)
-      .maybeSingle();
+      .single();
 
-    if (existingConv) {
-      conversationId = existingConv.id;
-      // Mettre à jour le timestamp
+    if (convError || !newConv) {
+      console.error('Erreur création conversation :', convError);
+      return new Response(JSON.stringify({ error: 'Erreur création conversation' }), { status: 500 });
+    }
+
+    conversationId = newConv.id;
+
+    // Ajouter tous les utilisateurs du chat comme participants
+    const { data: allUsers } = await chatSupabase
+      .from('profiles')
+      .select('id');
+
+    if (allUsers && allUsers.length > 0) {
       await chatSupabase
-        .from('conversations')
-        .update({ updated_at: new Date().toISOString() })
-        .eq('id', conversationId);
-    } else {
-      // Créer une nouvelle conversation pour ce client
-      const { data: newConv, error: convError } = await chatSupabase
-        .from('conversations')
-        .insert({
-          contact_name: customerName,
-          contact_phone: customerPhone,
-          contact_email: customerEmail,
-          updated_at: new Date().toISOString(),
-        })
-        .select('id')
-        .single();
-
-      if (convError || !newConv) {
-        console.error('Erreur création conversation :', convError);
-        return new Response(JSON.stringify({ error: 'Erreur création conversation' }), { status: 500 });
-      }
-
-      conversationId = newConv.id;
-
-      // Ajouter tous les utilisateurs du chat comme participants
-      const { data: allUsers } = await chatSupabase
-        .from('profiles')
-        .select('id');
-
-      if (allUsers && allUsers.length > 0) {
-        await chatSupabase
-          .from('conversation_participants')
-          .insert(allUsers.map(u => ({
-            conversation_id: conversationId!,
-            user_id: u.id,
-          })));
-      }
+        .from('conversation_participants')
+        .insert(allUsers.map(u => ({
+          conversation_id: conversationId,
+          user_id: u.id,
+        })));
     }
 
     // Trouver un expéditeur (premier participant)
