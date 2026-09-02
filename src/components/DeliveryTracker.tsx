@@ -99,12 +99,23 @@ export default function DeliveryTracker({ order, onUpdate }: Props) {
 
     updates.updated_at = new Date().toISOString();
 
-    const { error } = await supabaseOrders
+    console.log('DeliveryTracker update:', { orderId: order.id, updates });
+
+    const { error, data, count } = await supabaseOrders
       .from('orders')
       .update(updates)
-      .eq('id', order.id);
+      .eq('id', order.id)
+      .select();
 
-    if (!error) {
+    console.log('DeliveryTracker result:', { error, data, count });
+
+    if (error) {
+      console.error('DeliveryTracker error:', error);
+      alert(`Erreur: ${error.message}`);
+    } else if (!data || data.length === 0) {
+      console.error('DeliveryTracker: aucune ligne mise à jour');
+      alert('Erreur: la commande n\'a pas été trouvée dans la base');
+    } else {
       onUpdate(updates);
     }
 
