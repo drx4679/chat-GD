@@ -10,10 +10,10 @@ interface Props {
 }
 
 const STEPS = [
-  { key: 'confirmed', label: 'Validée', field: null },
-  { key: 'is_processing', label: 'Préparation', field: 'is_processing' as const },
-  { key: 'is_shipped', label: 'Expédié', field: 'is_shipped' as const },
-  { key: 'is_delivered', label: 'Livré', field: 'is_delivered' as const },
+  { key: 'confirmed', label: 'Validée' },
+  { key: 'is_processing', label: 'Préparation' },
+  { key: 'is_shipped', label: 'Expédié' },
+  { key: 'is_delivered', label: 'Livré' },
 ];
 
 // Icônes SVG épurées
@@ -65,26 +65,43 @@ export default function DeliveryTracker({ order, onUpdate }: Props) {
 
   const activeStep = getActiveStep();
 
-  const handleToggle = async (field: 'is_processing' | 'is_shipped' | 'is_delivered', stepIndex: number) => {
+  const handleToggle = async (stepIndex: number) => {
     if (updating) return;
-    setUpdating(field);
+    setUpdating(STEPS[stepIndex].key);
 
-    const isCurrentlyActive = order[field];
-    const updates: Partial<Order> = {};
+    const isCurrentlyActive = stepIndex <= activeStep;
+    const updates: Record<string, any> = {};
 
     if (isCurrentlyActive) {
-      if (stepIndex <= 1) { updates.is_processing = false; updates.is_shipped = false; updates.is_delivered = false; }
-      else if (stepIndex === 2) { updates.is_shipped = false; updates.is_delivered = false; }
-      else if (stepIndex === 3) { updates.is_delivered = false; }
+      // Désactiver cette étape et les suivantes
+      if (stepIndex === 0) {
+        updates.status = 'pending';
+        updates.is_processing = false;
+        updates.is_shipped = false;
+        updates.is_delivered = false;
+      } else if (stepIndex === 1) {
+        updates.is_processing = false;
+        updates.is_shipped = false;
+        updates.is_delivered = false;
+      } else if (stepIndex === 2) {
+        updates.is_shipped = false;
+        updates.is_delivered = false;
+      } else if (stepIndex === 3) {
+        updates.is_delivered = false;
+      }
     } else {
+      // Activer cette étape et les précédentes
+      if (stepIndex >= 0) updates.status = 'confirmed';
       if (stepIndex >= 1) updates.is_processing = true;
       if (stepIndex >= 2) updates.is_shipped = true;
       if (stepIndex >= 3) updates.is_delivered = true;
     }
 
+    updates.updated_at = new Date().toISOString();
+
     const { error } = await supabaseOrders
       .from('orders')
-      .update({ ...updates, updated_at: new Date().toISOString() })
+      .update(updates)
       .eq('id', order.id);
 
     if (!error) {
@@ -117,27 +134,19 @@ export default function DeliveryTracker({ order, onUpdate }: Props) {
 
             return (
               <div key={step.key} className="flex flex-col items-center z-10">
-                {step.field ? (
-                  <button
-                    onClick={() => handleToggle(step.field!, idx)}
-                    disabled={updating !== null}
-                    className={`w-9 h-9 rounded-full flex items-center justify-center transition-all duration-300 ${
-                      isActive
-                        ? 'bg-green-500 text-white shadow-md'
-                        : 'bg-white border-2 border-gray-300 text-gray-400 hover:border-green-400 hover:text-green-500'
-                    } ${isCurrent ? 'ring-2 ring-green-200 ring-offset-1' : ''} ${
-                      updating === step.field ? 'animate-pulse' : ''
-                    }`}
-                  >
-                    <StepIcon />
-                  </button>
-                ) : (
-                  <div className={`w-9 h-9 rounded-full flex items-center justify-center transition-all duration-300 ${
-                    isActive ? 'bg-green-500 text-white shadow-md' : 'bg-white border-2 border-gray-300 text-gray-400'
-                  }`}>
-                    <StepIcon />
-                  </div>
-                )}
+                <button
+                  onClick={() => handleToggle(idx)}
+                  disabled={updating !== null}
+                  className={`w-9 h-9 rounded-full flex items-center justify-center transition-all duration-300 ${
+                    isActive
+                      ? 'bg-green-500 text-white shadow-md'
+                      : 'bg-white border-2 border-gray-300 text-gray-400 hover:border-green-400 hover:text-green-500'
+                  } ${isCurrent ? 'ring-2 ring-green-200 ring-offset-1' : ''} ${
+                    updating === step.key ? 'animate-pulse' : ''
+                  }`}
+                >
+                  <StepIcon />
+                </button>
                 <span className={`text-[10px] mt-1.5 font-medium ${
                   isActive ? 'text-green-600' : 'text-gray-400'
                 }`}>
@@ -155,12 +164,14 @@ export default function DeliveryTracker({ order, onUpdate }: Props) {
           order.is_delivered ? 'bg-green-100 text-green-700' :
           order.is_shipped ? 'bg-purple-100 text-purple-700' :
           order.is_processing ? 'bg-blue-100 text-blue-700' :
+          order.status !== 'pending' ? 'bg-green-100 text-green-700' :
           'bg-gray-100 text-gray-600'
         }`}>
           {order.is_delivered ? 'Livré au client' :
            order.is_shipped ? 'En cours de livraison' :
            order.is_processing ? 'En préparation' :
-           'En attente de traitement'}
+           order.status !== 'pending' ? 'Commande validée' :
+           'En attente de validation'}
         </span>
       </div>
     </div>

@@ -137,14 +137,27 @@ export default function OrderCard({ orderNumber, isOwn }: OrderCardProps) {
             <span className="text-lg">📦</span>
             <span className="text-white font-semibold text-sm">{order.order_number}</span>
           </div>
-          <span className={`${statusConfig.bg} ${statusConfig.color} text-xs font-semibold px-2.5 py-1 rounded-full flex items-center space-x-1`}>
-            {order.status === 'confirmed' && (
-              <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-              </svg>
-            )}
-            <span>{statusConfig.badgeLabel}</span>
-          </span>
+          {(() => {
+            const badge = order.is_delivered
+              ? { label: 'Livré', color: 'text-emerald-700', bg: 'bg-emerald-100' }
+              : order.is_shipped
+              ? { label: 'Expédié', color: 'text-purple-700', bg: 'bg-purple-100' }
+              : order.is_processing
+              ? { label: 'En préparation', color: 'text-indigo-700', bg: 'bg-indigo-100' }
+              : order.status !== 'pending'
+              ? { label: 'Validée', color: 'text-green-700', bg: 'bg-green-100' }
+              : { label: 'En attente', color: 'text-yellow-700', bg: 'bg-yellow-100' };
+            return (
+              <span className={`${badge.bg} ${badge.color} text-xs font-semibold px-2.5 py-1 rounded-full flex items-center space-x-1`}>
+                {badge.label !== 'En attente' && (
+                  <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                  </svg>
+                )}
+                <span>{badge.label}</span>
+              </span>
+            );
+          })()}
         </div>
 
         {/* Body */}
@@ -227,36 +240,7 @@ export default function OrderCard({ orderNumber, isOwn }: OrderCardProps) {
             {expanded ? '▲ Moins de détails' : '▼ Plus de détails'}
           </button>
 
-          {/* Actions statut */}
-          {nextStatus && (
-            <div className="border-t border-gray-100 pt-2 flex space-x-2">
-              <button
-                onClick={() => handleStatusChange(nextStatus)}
-                disabled={updating}
-                className="flex-1 flex items-center justify-center space-x-2 bg-indigo-500 text-white text-sm font-medium py-2 rounded-lg hover:bg-indigo-600 disabled:opacity-50 transition-colors"
-              >
-                {updating ? (
-                  <span>...</span>
-                ) : (
-                  <>
-                    <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                    </svg>
-                    <span>{STATUS_CONFIG[nextStatus].label}</span>
-                  </>
-                )}
-              </button>
-              {order.status !== 'cancelled' && (
-                <button
-                  onClick={() => handleStatusChange('cancelled')}
-                  disabled={updating}
-                  className="px-3 bg-red-50 text-red-600 text-sm font-medium py-2 rounded-lg hover:bg-red-100 disabled:opacity-50 transition-colors"
-                >
-                  ✕
-                </button>
-              )}
-            </div>
-          )}
+
 
           {/* Suivi de livraison */}
           <DeliveryTracker 
