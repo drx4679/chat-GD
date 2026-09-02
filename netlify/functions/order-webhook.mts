@@ -1,5 +1,6 @@
 import { Config, Context } from '@netlify/functions';
 import { createClient } from '@supabase/supabase-js';
+import webpush from 'web-push';
 
 interface OrderWebhookPayload {
   type: 'INSERT' | 'UPDATE';
@@ -122,6 +123,52 @@ export default async (req: Request, context: Context): Promise<Response> => {
     if (msgError) {
       console.error('Erreur insertion message :', msgError);
       return new Response(JSON.stringify({ error: msgError.message }), { status: 500 });
+    }
+
+    // Envoyer des notifications push à TOUS les participants
+    try {
+      const vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
+      const vapidPrivateKey = process.env.VAPID_PRIVATE_KEY;
+      const vapidSubject = process.env.VAPID_SUBJECT;
+
+      if (vapidPublicKey && vapidPrivateKey && vapidSubject) {
+        webpush.setVapidDetails(vapidSubject, vapidPublicKey, vapidPrivateKey);
+
+        // Récupérer tous les participants
+        const { data: allParticipants } = await chatSupabase
+          .from('conversation_participants')
+          .select('user_id')
+          .eq('conversation_id', conversationId);
+
+        if (allParticipants && allParticipants.length > 0) {
+          const participantIds = allParticipants.map(p => p.user_id);
+
+          // Récupérer les abonnements push
+          const { data: subscriptions } = await chatSupabase
+            .from('push_subscriptions')
+            .select('*')
+            .in('user_id', participantIds);
+
+          if (subscriptions && subscriptions.length > 0) {
+            const payload = JSON.stringify({
+              title: `📦 Commande ${order.order_number}`,
+              body: `${customerName} — ${new Intl.NumberFormat('fr-FR').format(order.final_amount)} ${order.currency || 'XOF'}`,
+              data: { url: `/chat/${conversationId}` },
+            });
+
+            await Promise.allSettled(
+              subscriptions.map(sub =>
+                webpush.sendNotification(
+                  { endpoint: sub.endpoint, keys: sub.keys as any },
+                  payload
+                ).catch(() => {})
+              )
+            );
+          }
+        }
+      }
+    } catch (pushErr) {
+      console.error('Erreur push notification commande :', pushErr);
     }
 
     return new Response(JSON.stringify({ 
