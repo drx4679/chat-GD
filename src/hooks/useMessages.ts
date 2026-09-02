@@ -46,7 +46,22 @@ export function useMessages(conversationId: string): UseMessagesReturn {
           'postgres_changes',
           { event: 'INSERT', schema: 'public', table: 'messages', filter: `conversation_id=eq.${conversationId}` },
           (payload) => {
-            setMessages(prev => [...prev, payload.new as Message]);
+            const newMsg = payload.new as Message;
+            // Éviter les doublons (message optimiste déjà affiché)
+            setMessages(prev => {
+              if (prev.some(m => m.id === newMsg.id)) return prev;
+              return [...prev, newMsg];
+            });
+
+            // Notification navigateur si le message vient d'un autre utilisateur
+            if (newMsg.sender_id !== user?.id && document.hidden) {
+              if (Notification.permission === 'granted') {
+                new Notification('Nouveau message', {
+                  body: newMsg.content.length > 100 ? newMsg.content.slice(0, 97) + '...' : newMsg.content,
+                  icon: '/icons/icon.svg',
+                });
+              }
+            }
           }
         )
         .subscribe();
