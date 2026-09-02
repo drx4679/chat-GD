@@ -1,7 +1,6 @@
 import { Config, Context } from '@netlify/functions';
 import { createClient } from '@supabase/supabase-js';
 
-const BOT_USER_ID = '00000000-0000-0000-0000-000000000001';
 const ORDERS_CONVERSATION_ID = '00000000-0000-0000-0000-000000000002';
 
 interface OrderWebhookPayload {
@@ -45,6 +44,18 @@ export default async (req: Request, context: Context): Promise<Response> => {
       auth: { persistSession: false },
     });
 
+    // Trouver le premier participant de la conversation comme expéditeur
+    const { data: firstParticipant } = await chatSupabase
+      .from('conversation_participants')
+      .select('user_id')
+      .eq('conversation_id', ORDERS_CONVERSATION_ID)
+      .limit(1)
+      .single();
+
+    if (!firstParticipant) {
+      return new Response(JSON.stringify({ error: 'Aucun participant trouvé' }), { status: 500 });
+    }
+
     // Créer le message commande dans la conversation dédiée
     const messageContent = `[ORDER:${order.order_number}]`;
 
@@ -52,7 +63,7 @@ export default async (req: Request, context: Context): Promise<Response> => {
       .from('messages')
       .insert({
         conversation_id: ORDERS_CONVERSATION_ID,
-        sender_id: BOT_USER_ID,
+        sender_id: firstParticipant.user_id,
         content: messageContent,
       });
 
